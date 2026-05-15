@@ -1,0 +1,374 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { SearchBar } from "@/components/search-bar";
+import { DocumentSortFilter } from "@/components/document-sort-filter";
+import { type DocumentRecord, type SearchResult, type SortField, type SortOrder } from "@/lib/types";
+import { formatDate } from "@/lib/utils";
+
+type DocumentListProps = {
+  documents: DocumentRecord[];
+};
+
+export function DocumentList({ documents: initialDocuments }: DocumentListProps) {
+  const router = useRouter();
+  const [documents, setDocuments] = useState(initialDocuments);
+  const [creating, setCreating] = useState(false);
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [draftTitle, setDraftTitle] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [searchResults, setSearchResults] = useState<SearchResult[] | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  
+  // Sort and filter state
+  const [sortField, setSortField] = useState<SortField>("updated_at");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [isLoadingFiltered, setIsLoadingFiltered] = useState(false);
+
+  // Load saved settings from session storage
+  useEffect(() => {
+    const savedSortField = sessionStorage.getItem("documentSortField") as SortField;
+    const savedSortOrder = sessionStorage.getItem("documentSortOrder") as SortOrder;
+    const savedTags = sessionStorage.getItem("documentFilterTags");
+
+    if (savedSortField) setSortField(savedSortField);
+    if (savedSortOrder) setSortOrder(savedSortOrder);
+    if (savedTags) {
+      try {
+        setSelectedTags(JSON.parse(savedTags));
+      } catch {
+        // Ignore parse errors
+      }
+    }
+  }, []);
+
+  // Fetch filtered/sorted documents when sort or filter changes
+  useEffect(() => {
+    if (isSearching) return; // Don't fetch if searching
+    fetchFilteredDocuments();
+  }, [sortField, sortOrder, selectedTags]);
+
+  async function fetchFilteredDocuments() {
+    setIsLoadingFiltered(true);
+    setError(null);
+
+    try {
+      const params = new URLSearchParams({
+        sortBy: sortField,
+        order: sortOrder,
+      });
+
+      if (selectedTags.length > 0) {
+        params.append("tags", selectedTags.join(","));
+      }
+
+      const response = await fetch(`/api/documents?${params.toString()}`);
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to fetch documents");
+      }
+
+      const data = await response.json();
+      setDocuments(data.documents || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to fetch documents");
+    } finally {
+      setIsLoadingFiltered(false);
+    }
+  }
+
+  // Determine which documents to display
+  const displayDocuments = searchResults !== null ? searchResults : documents;
+  const isShowingSearchResults = searchResults !== null;
+  const hasActiveFilters = selectedTags.length > 0;
+
+  function handleSearch(results: SearchResult[]) {
+    setSearchResults(results);
+    setIsSearching(true);
+  }
+
+  function handleClearSearch() {
+    setSearchResults(null);
+    setIsSearching(false);
+  }
+
+  function handleSortChange(field: SortField, order: SortOrder) {
+    setSortField(field);
+    setSortOrder(order);
+  }
+
+  function handleTagFilter(tags: string[]) {
+    setSelectedTags(tags);
+  }
+
+  async function handleCreate() {
+    setCreating(true);
+    setError(null);
+
+    const response = await fetch("/api/documents", {
+      method: "POST",
+    });
+
+    const payload = await response.json();
+    setCreating(false);
+
+    if (!response.ok) {
+      setError(payload.error ?? "创建文档失败");
+      return;
+    }
+
+    router.push(`/dashboard/doc/${payload.document.id}`);
+    router.refresh();
+  }
+
+  async function handleRename(id: string) {
+    const title = draftTitle.trim() || "未命名文档";
+    const response = await fetch(`/api/documents/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ title }),
+    });
+
+    const payload = await response.json();
+
+    if (!response.ok) {
+      setError(payload.error ?? "重命名失败");
+      return;
+    }
+
+    setDocuments((current) =>
+      current.map((item) => (item.id === id ? payload.document : item)),
+    );
+    setRenamingId(null);
+    setDraftTitle("");
+    router.refresh();
+  }
+
+  async function handleDelete(id: string) {
+    const confirmed = window.confirm("确定删除这篇文档吗？此操作不可撤销。");
+
+    if (!confirmed) {
+      return;
+    }
+
+    const response = await fetch(`/api/documents/${id}`, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) {
+      const payload = await response.json();
+      setError(payload.error ?? "删除失败");
+      return;
+    }
+
+    setDocuments((current) => current.filter((item) => item.id !== id));
+    
+    // Also update search results if searching
+    if (searchResults) {
+      setSearchResults((current) => current ? current.filter((item) => item.id !== id) : null);
+    }
+    
+    router.refresh();
+  }
+
+  // Helper function to highlight matches in title
+  function highlightMatches(text: string, shouldHighlight: boolean) {
+    if (!shouldHighlight) return text;
+    // For now, just return the text as-is
+    // In a real implementation, you'd parse and highlight the search terms
+    return text;
+  }
+
+  // Helper function to highlight matches in excerpt
+  function highlightExcerpt(excerpt: string) {
+    // The excerpt from the API already has ** markers for highlights
+    // Replace them with styled spans
+    const parts = excerpt.split(/\*\*(.*?)\*\*/g);
+    return (
+      <>
+        {parts.map((part, index) => {
+          // Odd indices are the highlighted parts
+          if (index % 2 === 1) {
+            return (
+              <span key={index} className="bg-yellow-500/20 text-yellow-200 font-medium">
+                {part}
+              </span>
+            );
+          }
+          return <span key={index}>{part}</span>;
+        })}
+      </>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-white">全部文档</h2>
+          <p className="text-sm text-slate-400">
+            {isShowingSearchResults
+              ? `搜索结果 (${displayDocuments.length})`
+              : hasActiveFilters
+              ? `筛选结果 (${displayDocuments.length})`
+              : "按最近更新时间排序"}
+          </p>
+        </div>
+        <Button onClick={handleCreate} disabled={creating}>
+          {creating ? "创建中..." : "新建文档"}
+        </Button>
+      </div>
+
+      {/* Search Bar */}
+      <SearchBar
+        onSearch={handleSearch}
+        onClear={handleClearSearch}
+        placeholder="搜索标题或内容..."
+      />
+
+      {/* Sort and Filter Controls */}
+      {!isShowingSearchResults && (
+        <DocumentSortFilter
+          sortField={sortField}
+          sortOrder={sortOrder}
+          selectedTags={selectedTags}
+          onSortChange={handleSortChange}
+          onTagFilter={handleTagFilter}
+        />
+      )}
+
+      {error ? <p className="rounded-xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">{error}</p> : null}
+
+      {isLoadingFiltered && !isShowingSearchResults ? (
+        <Card className="flex min-h-72 flex-col items-center justify-center gap-4 p-8 text-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-700 border-t-sky-500"></div>
+          <p className="text-sm text-slate-400">加载中...</p>
+        </Card>
+      ) : displayDocuments.length === 0 ? (
+        <Card className="flex min-h-72 flex-col items-center justify-center gap-4 p-8 text-center">
+          {isShowingSearchResults ? (
+            <>
+              <h3 className="text-xl font-medium text-white">未找到匹配的文档</h3>
+              <p className="max-w-md text-sm leading-7 text-slate-400">
+                尝试使用不同的关键词搜索，或清空搜索查看所有文档。
+              </p>
+              <Button onClick={handleClearSearch} variant="secondary">
+                清空搜索
+              </Button>
+            </>
+          ) : hasActiveFilters ? (
+            <>
+              <h3 className="text-xl font-medium text-white">没有匹配的文档</h3>
+              <p className="max-w-md text-sm leading-7 text-slate-400">
+                没有文档包含所有选中的标签。尝试减少筛选条件。
+              </p>
+              <Button onClick={() => setSelectedTags([])} variant="secondary">
+                清除筛选
+              </Button>
+            </>
+          ) : (
+            <>
+              <h3 className="text-xl font-medium text-white">还没有文档</h3>
+              <p className="max-w-md text-sm leading-7 text-slate-400">
+                先创建你的第一篇 Markdown 文档，之后你就可以在不同设备之间继续编辑。
+              </p>
+              <Button onClick={handleCreate} disabled={creating}>
+                立即创建
+              </Button>
+            </>
+          )}
+        </Card>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {displayDocuments.map((document) => {
+            const isRenaming = renamingId === document.id;
+
+            return (
+              <Card key={document.id} className="flex flex-col gap-4 p-5">
+                <div className="space-y-3">
+                  {isRenaming ? (
+                    <div className="space-y-3">
+                      <Input value={draftTitle} onChange={(event) => setDraftTitle(event.target.value)} />
+                      <div className="flex gap-2">
+                        <Button className="flex-1" onClick={() => handleRename(document.id)}>
+                          保存
+                        </Button>
+                        <Button
+                          className="flex-1"
+                          variant="secondary"
+                          onClick={() => {
+                            setRenamingId(null);
+                            setDraftTitle("");
+                          }}
+                        >
+                          取消
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="space-y-2">
+                        <Link href={`/dashboard/doc/${document.id}`} className="block text-lg font-semibold text-white hover:text-sky-300">
+                          {highlightMatches(document.title, isShowingSearchResults)}
+                        </Link>
+                        <p className="line-clamp-3 text-sm leading-7 text-slate-400">
+                          {isShowingSearchResults && "excerpt" in document
+                            ? highlightExcerpt((document as SearchResult).excerpt)
+                            : document.content || "空文档"}
+                        </p>
+                      </div>
+                      {"tags" in document && document.tags && document.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5">
+                          {document.tags.map((tag) => (
+                            <div
+                              key={tag.id}
+                              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-slate-800/50 px-2 py-1"
+                            >
+                              <div
+                                className="h-2 w-2 rounded-full"
+                                style={{ backgroundColor: tag.color }}
+                              />
+                              <span className="text-xs text-slate-300">{tag.name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <p className="text-xs text-slate-500">更新于 {formatDate(document.updated_at)}</p>
+                    </>
+                  )}
+                </div>
+                {!isRenaming ? (
+                  <div className="mt-auto flex gap-2">
+                    <Button
+                      variant="secondary"
+                      className="flex-1"
+                      onClick={() => {
+                        setRenamingId(document.id);
+                        setDraftTitle(document.title);
+                      }}
+                    >
+                      重命名
+                    </Button>
+                    <Button variant="danger" className="flex-1" onClick={() => handleDelete(document.id)}>
+                      删除
+                    </Button>
+                  </div>
+                ) : null}
+              </Card>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
