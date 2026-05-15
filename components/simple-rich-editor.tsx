@@ -35,6 +35,7 @@ export const SimpleRichEditor = forwardRef<SimpleRichEditorHandle, SimpleRichEdi
   const historyRef = useRef<HistoryState[]>([{ content, timestamp: Date.now() }]);
   const historyIndexRef = useRef(0);
   const isUndoRedoRef = useRef(false);
+  const currentMarkdownRef = useRef(content);
   
   // 保存当前选区
   const savedSelectionRef = useRef<Range | null>(null);
@@ -45,11 +46,16 @@ export const SimpleRichEditor = forwardRef<SimpleRichEditorHandle, SimpleRichEdi
   // 初始化内容
   useEffect(() => {
     if (editorRef.current && !isFocused && !isUndoRedoRef.current) {
+      if (content === currentMarkdownRef.current) {
+        return;
+      }
+
       // 将 Markdown 转换为简单的 HTML
       const html = markdownToHtml(content);
       if (editorRef.current.innerHTML !== html) {
         editorRef.current.innerHTML = html;
       }
+      currentMarkdownRef.current = content;
     }
   }, [content, isFocused]);
 
@@ -253,6 +259,7 @@ export const SimpleRichEditor = forwardRef<SimpleRichEditorHandle, SimpleRichEdi
 
    function syncContent() {
      const markdown = getCurrentMarkdown();
+     currentMarkdownRef.current = markdown;
      onChange(markdown);
      return markdown;
    }
@@ -266,6 +273,7 @@ export const SimpleRichEditor = forwardRef<SimpleRichEditorHandle, SimpleRichEdi
     if (editorRef.current && !isUndoRedoRef.current) {
       const html = editorRef.current.innerHTML;
       const markdown = htmlToMarkdown(html);
+      currentMarkdownRef.current = markdown;
       
       // 添加到历史记录
       const now = Date.now();

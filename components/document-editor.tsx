@@ -364,7 +364,7 @@ export function DocumentEditor({ document }: DocumentEditorProps) {
               content={content}
               onChange={setContent}
               placeholder="开始输入内容..."
-              disabled={isUploadingImage || saveState === "saving"}
+              disabled={isUploadingImage}
               onImageClick={handleOpenImageEditor}
             />
             {isUploadingImage && (
