@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { TagManager } from "@/components/tag-manager";
-import { SimpleRichEditor } from "@/components/simple-rich-editor";
+import { SimpleRichEditor, type SimpleRichEditorHandle } from "@/components/simple-rich-editor";
 import { ImageEditorDialog } from "@/components/image-editor-dialog";
 import { VersionHistory } from "@/components/version-history";
 import { ExportDialog } from "@/components/export-dialog";
@@ -25,6 +25,7 @@ type DocumentEditorProps = {
 export function DocumentEditor({ document }: DocumentEditorProps) {
   const router = useRouter();
   const { isOnline } = useNetwork();
+  const editorRef = useRef<SimpleRichEditorHandle>(null);
   const [title, setTitle] = useState(document.title);
   const [content, setContent] = useState(document.content);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
@@ -41,7 +42,6 @@ export function DocumentEditor({ document }: DocumentEditorProps) {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [originalTitle, setOriginalTitle] = useState(document.title);
   const [originalContent, setOriginalContent] = useState(document.content);
-  const editorRef = useRef<HTMLDivElement>(null);
 
   // Load document tags
   useEffect(() => {
@@ -171,23 +171,25 @@ export function DocumentEditor({ document }: DocumentEditorProps) {
     setSaveState("saving");
     setError(null);
 
+    const latestContent = editorRef.current?.syncContent() ?? content;
+
     try {
       // Save offline if not connected
       if (!isOnline) {
         await saveDocumentOffline({
           ...document,
           title,
-          content,
+          content: latestContent,
           updated_at: new Date().toISOString(),
         }, [
           { field: 'title', value: title, timestamp: new Date().toISOString() },
-          { field: 'content', value: content, timestamp: new Date().toISOString() },
+          { field: 'content', value: latestContent, timestamp: new Date().toISOString() },
         ]);
         
         setSaveState("saved");
         setUpdatedAt(new Date().toISOString());
         setOriginalTitle(title);
-        setOriginalContent(content);
+        setOriginalContent(latestContent);
         setHasUnsavedChanges(false);
         
         // 2秒后恢复为idle状态
@@ -201,7 +203,7 @@ export function DocumentEditor({ document }: DocumentEditorProps) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ title, content }),
+        body: JSON.stringify({ title, content: latestContent }),
       });
 
       const payload = await response.json();
@@ -215,7 +217,7 @@ export function DocumentEditor({ document }: DocumentEditorProps) {
       setSaveState("saved");
       setUpdatedAt(payload.document.updated_at);
       setOriginalTitle(title);
-      setOriginalContent(content);
+      setOriginalContent(payload.document.content ?? latestContent);
       setHasUnsavedChanges(false);
       
       // 2秒后恢复为idle状态
@@ -358,6 +360,7 @@ export function DocumentEditor({ document }: DocumentEditorProps) {
           <div className="space-y-2">
             <label className="text-sm text-slate-300">正文</label>
             <SimpleRichEditor
+              ref={editorRef}
               content={content}
               onChange={setContent}
               placeholder="开始输入内容..."

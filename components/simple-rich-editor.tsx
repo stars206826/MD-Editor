@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 
 type SimpleRichEditorProps = {
@@ -16,13 +16,18 @@ type HistoryState = {
   timestamp: number;
 };
 
-export function SimpleRichEditor({
+export type SimpleRichEditorHandle = {
+  getMarkdown: () => string;
+  syncContent: () => string;
+};
+
+export const SimpleRichEditor = forwardRef<SimpleRichEditorHandle, SimpleRichEditorProps>(function SimpleRichEditor({
   content,
   onChange,
   placeholder = "开始输入内容...",
   disabled = false,
   onImageClick,
-}: SimpleRichEditorProps) {
+}, ref) {
   const editorRef = useRef<HTMLDivElement>(null);
   const [isFocused, setIsFocused] = useState(false);
   
@@ -237,6 +242,25 @@ export function SimpleRichEditor({
       .replace(/\n{3,}/g, "\n\n")
       .trim();
   }
+
+   function getCurrentMarkdown() {
+     if (!editorRef.current) {
+       return content;
+     }
+
+     return htmlToMarkdown(editorRef.current.innerHTML);
+   }
+
+   function syncContent() {
+     const markdown = getCurrentMarkdown();
+     onChange(markdown);
+     return markdown;
+   }
+
+   useImperativeHandle(ref, () => ({
+     getMarkdown: getCurrentMarkdown,
+     syncContent,
+   }), [content]);
 
   function handleInput() {
     if (editorRef.current && !isUndoRedoRef.current) {
@@ -647,4 +671,4 @@ export function SimpleRichEditor({
       </div>
     </div>
   );
-}
+});
