@@ -36,6 +36,7 @@ export const SimpleRichEditor = forwardRef<SimpleRichEditorHandle, SimpleRichEdi
   const historyIndexRef = useRef(0);
   const isUndoRedoRef = useRef(false);
   const currentMarkdownRef = useRef(content);
+  const hasInitializedContentRef = useRef(false);
   
   // 保存当前选区
   const savedSelectionRef = useRef<Range | null>(null);
@@ -46,7 +47,7 @@ export const SimpleRichEditor = forwardRef<SimpleRichEditorHandle, SimpleRichEdi
   // 初始化内容
   useEffect(() => {
     if (editorRef.current && !isFocused && !isUndoRedoRef.current) {
-      if (content === currentMarkdownRef.current) {
+      if (hasInitializedContentRef.current && content === currentMarkdownRef.current) {
         return;
       }
 
@@ -56,6 +57,7 @@ export const SimpleRichEditor = forwardRef<SimpleRichEditorHandle, SimpleRichEdi
         editorRef.current.innerHTML = html;
       }
       currentMarkdownRef.current = content;
+      hasInitializedContentRef.current = true;
     }
   }, [content, isFocused]);
 
