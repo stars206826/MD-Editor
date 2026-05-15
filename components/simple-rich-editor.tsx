@@ -109,38 +109,133 @@ export function SimpleRichEditor({
   // HTML 到 Markdown 转换
   function htmlToMarkdown(html: string): string {
     if (!html) return "";
-    
-    let markdown = html
-      // 标题
-      .replace(/<h1>(.*?)<\/h1>/gi, '# $1\n')
-      .replace(/<h2>(.*?)<\/h2>/gi, '## $1\n')
-      .replace(/<h3>(.*?)<\/h3>/gi, '### $1\n')
-      // 粗体
-      .replace(/<strong>(.*?)<\/strong>/gi, '**$1**')
-      .replace(/<b>(.*?)<\/b>/gi, '**$1**')
-      // 斜体
-      .replace(/<em>(.*?)<\/em>/gi, '*$1*')
-      .replace(/<i>(.*?)<\/i>/gi, '*$1*')
-      // 删除线 - 添加对 <s> 和 <del> 标签的支持
-      .replace(/<s>(.*?)<\/s>/gi, '~~$1~~')
-      .replace(/<del>(.*?)<\/del>/gi, '~~$1~~')
-      .replace(/<strike>(.*?)<\/strike>/gi, '~~$1~~')
-      // 下划线 - 注意：Markdown 不支持下划线，转换为 HTML
-      .replace(/<u>(.*?)<\/u>/gi, '<u>$1</u>')
-      // 代码
-      .replace(/<code>(.*?)<\/code>/gi, '`$1`')
-      // 链接
-      .replace(/<a href="(.*?)">(.*?)<\/a>/gi, '[$2]($1)')
-      // 图片
-      .replace(/<img src="(.*?)" alt="(.*?)".*?>/gi, '![$2]($1)')
-      // 换行
-      .replace(/<br\s*\/?>/gi, '\n')
-      .replace(/<\/p>/gi, '\n')
-      .replace(/<p>/gi, '')
-      // 清理其他 HTML 标签
-      .replace(/<[^>]+>/g, '');
-    
-    return markdown.trim();
+
+    const container = document.createElement("div");
+    container.innerHTML = html;
+
+    function applyStyledFormatting(value: string, element: HTMLElement): string {
+      const style = (element.getAttribute("style") ?? "").toLowerCase();
+      const fontWeight = style.match(/font-weight\s*:\s*([^;]+)/)?.[1] ?? "";
+      const fontStyle = style.match(/font-style\s*:\s*([^;]+)/)?.[1] ?? "";
+      const textDecoration = style.match(/text-decoration(?:-line)?\s*:\s*([^;]+)/)?.[1] ?? "";
+      const numericFontWeight = Number.parseInt(fontWeight, 10);
+
+      let result = value;
+
+      if (textDecoration.includes("line-through")) {
+        result = `~~${result}~~`;
+      }
+
+      if (textDecoration.includes("underline")) {
+        result = `<u>${result}</u>`;
+      }
+
+      if (fontStyle.includes("italic")) {
+        result = `*${result}*`;
+      }
+
+      if (fontWeight.includes("bold") || (!Number.isNaN(numericFontWeight) && numericFontWeight >= 600)) {
+        result = `**${result}**`;
+      }
+
+      return result;
+    }
+
+    function serializeChildren(element: HTMLElement): string {
+      return Array.from(element.childNodes).map(serializeNode).join("");
+    }
+
+    function serializeList(children: HTMLCollection, ordered: boolean): string {
+      return Array.from(children)
+        .map((child, index) => {
+          const content = serializeNode(child).replace(/\n+$/g, "");
+          const prefix = ordered ? `${index + 1}. ` : "- ";
+
+          return content
+            .split("\n")
+            .map((line, lineIndex) => (lineIndex === 0 ? `${prefix}${line}` : `   ${line}`))
+            .join("\n");
+        })
+        .join("\n");
+    }
+
+    function serializeElement(element: HTMLElement): string {
+      const tag = element.tagName.toLowerCase();
+      const content = serializeChildren(element);
+
+      switch (tag) {
+        case "h1":
+          return `# ${content}\n`;
+        case "h2":
+          return `## ${content}\n`;
+        case "h3":
+          return `### ${content}\n`;
+        case "strong":
+        case "b":
+          return `**${content}**`;
+        case "em":
+        case "i":
+          return `*${content}*`;
+        case "s":
+        case "del":
+        case "strike":
+          return `~~${content}~~`;
+        case "u":
+          return `<u>${content}</u>`;
+        case "code":
+          return `\`${content}\``;
+        case "a": {
+          const href = element.getAttribute("href") ?? "";
+          return `[${content}](${href})`;
+        }
+        case "img": {
+          const src = element.getAttribute("src") ?? "";
+          const alt = element.getAttribute("alt") ?? "";
+          return `![${alt}](${src})`;
+        }
+        case "p":
+        case "div":
+          return `${applyStyledFormatting(content, element)}\n`;
+        case "ul":
+          return `${serializeList(element.children, false)}\n`;
+        case "ol":
+          return `${serializeList(element.children, true)}\n`;
+        case "li":
+          return content;
+        case "blockquote":
+          return `${content
+            .split("\n")
+            .filter((line) => line.trim().length > 0)
+            .map((line) => `> ${line}`)
+            .join("\n")}\n`;
+        default:
+          return applyStyledFormatting(content, element);
+      }
+    }
+
+    function serializeNode(node: ChildNode): string {
+      if (node.nodeType === Node.TEXT_NODE) {
+        return node.textContent ?? "";
+      }
+
+      if (node.nodeType !== Node.ELEMENT_NODE) {
+        return "";
+      }
+
+      const element = node as HTMLElement;
+
+      if (element.tagName.toLowerCase() === "br") {
+        return "\n";
+      }
+
+      return serializeElement(element);
+    }
+
+    return Array.from(container.childNodes)
+      .map(serializeNode)
+      .join("")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
   }
 
   function handleInput() {
@@ -539,6 +634,7 @@ export function SimpleRichEditor({
           onInput={handleInput}
           onFocus={() => setIsFocused(true)}
           onBlur={() => {
+            handleInput();
             setIsFocused(false);
             saveSelection(); // 失去焦点时保存选区
           }}
