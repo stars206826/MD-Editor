@@ -139,7 +139,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   const supabase = await createClient();
   const { userId, isAuthDisabled } = await getUserIdOrDev(supabase);
 
@@ -154,12 +154,34 @@ export async function POST() {
     );
   }
 
+  let title = "未命名文档";
+  let content = "# 开始写作\n\n在这里记录你的想法。";
+
+  const contentType = request.headers.get("content-type") ?? "";
+
+  if (contentType.includes("application/json")) {
+    try {
+      const payload = await request.json();
+
+      if (typeof payload?.title === "string" && payload.title.trim()) {
+        title = payload.title.trim();
+      }
+
+      if (typeof payload?.content === "string") {
+        content = payload.content;
+      }
+    } catch (err) {
+      console.error("/api/documents parse body error", err);
+      return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    }
+  }
+
   const { data, error } = await supabase
     .from("documents")
     .insert({
       user_id: userId,
-      title: "未命名文档",
-      content: "# 开始写作\n\n在这里记录你的想法。",
+      title,
+      content,
     })
     .select("id, user_id, title, content, created_at, updated_at")
     .single();

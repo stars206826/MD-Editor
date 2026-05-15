@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { type ChangeEvent, useState, useEffect, useRef } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -18,8 +18,10 @@ type DocumentListProps = {
 
 export function DocumentList({ documents: initialDocuments }: DocumentListProps) {
   const router = useRouter();
+  const importInputRef = useRef<HTMLInputElement>(null);
   const [documents, setDocuments] = useState(initialDocuments);
   const [creating, setCreating] = useState(false);
+  const [importing, setImporting] = useState(false);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [draftTitle, setDraftTitle] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -129,6 +131,57 @@ export function DocumentList({ documents: initialDocuments }: DocumentListProps)
     router.refresh();
   }
 
+  function handleImportClick() {
+    if (importing) {
+      return;
+    }
+
+    importInputRef.current?.click();
+  }
+
+  async function handleImportFile(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    setImporting(true);
+    setError(null);
+
+    try {
+      const rawContent = await file.text();
+      const content = rawContent.replace(/^\uFEFF/, "");
+      const baseName = file.name.replace(/\.(md|markdown)$/i, "").trim();
+      const title = baseName || "未命名文档";
+
+      const response = await fetch("/api/documents", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title,
+          content,
+        }),
+      });
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? "导入文档失败");
+      }
+
+      router.push(`/dashboard/doc/${payload.document.id}`);
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "导入文档失败");
+    } finally {
+      setImporting(false);
+      event.target.value = "";
+    }
+  }
+
   async function handleRename(id: string) {
     const title = draftTitle.trim() || "未命名文档";
     const response = await fetch(`/api/documents/${id}`, {
@@ -224,9 +277,22 @@ export function DocumentList({ documents: initialDocuments }: DocumentListProps)
               : "按最近更新时间排序"}
           </p>
         </div>
-        <Button onClick={handleCreate} disabled={creating}>
-          {creating ? "创建中..." : "新建文档"}
-        </Button>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <input
+            ref={importInputRef}
+            type="file"
+            accept=".md,.markdown,text/markdown,text/plain"
+            className="hidden"
+            onChange={handleImportFile}
+            disabled={importing}
+          />
+          <Button onClick={handleImportClick} disabled={importing} variant="secondary">
+            {importing ? "导入中..." : "导入 Markdown"}
+          </Button>
+          <Button onClick={handleCreate} disabled={creating}>
+            {creating ? "创建中..." : "新建文档"}
+          </Button>
+        </div>
       </div>
 
       {/* Search Bar */}
