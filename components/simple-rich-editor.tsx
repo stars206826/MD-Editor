@@ -274,6 +274,7 @@ export const SimpleRichEditor = forwardRef<SimpleRichEditorHandle, SimpleRichEdi
       
       // 如果内容没有变化，不记录
       if (lastState && markdown === lastState.content) {
+        onChange(markdown);
         return;
       }
       
@@ -417,28 +418,108 @@ export const SimpleRichEditor = forwardRef<SimpleRichEditorHandle, SimpleRichEdi
     handleInput();
   }
 
-  function insertHeading(level: number) {
-    // 恢复选区
-    restoreSelection();
-    
+  function isSelectionInsideEditor(selection: Selection) {
+    const editor = editorRef.current;
+
+    if (!editor || selection.rangeCount === 0) {
+      return false;
+    }
+
+    const range = selection.getRangeAt(0);
+
+    return editor.contains(range.commonAncestorContainer);
+  }
+
+  function moveCursorAfter(node: Node) {
     const selection = window.getSelection();
-    if (selection && selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0);
-      const heading = document.createElement(`h${level}`);
-      heading.textContent = selection.toString() || `标题 ${level}`;
+
+    if (!selection) {
+      return;
+    }
+
+    const range = document.createRange();
+    range.setStartAfter(node);
+    range.setEndAfter(node);
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+
+  function applyBold() {
+    restoreSelection();
+
+    const selection = window.getSelection();
+
+    if (!selection || selection.rangeCount === 0 || !isSelectionInsideEditor(selection)) {
+      return;
+    }
+
+    const range = selection.getRangeAt(0);
+    const strong = document.createElement("strong");
+
+    if (range.collapsed) {
+      strong.textContent = "粗体";
+    } else {
+      strong.appendChild(range.extractContents());
+    }
+
+    range.deleteContents();
+    range.insertNode(strong);
+    moveCursorAfter(strong);
+    editorRef.current?.focus();
+    handleInput();
+  }
+
+  function findEditableBlock(node: Node | null): HTMLElement | null {
+    const editor = editorRef.current;
+    let current = node;
+
+    while (current && current !== editor) {
+      if (current.nodeType === Node.ELEMENT_NODE) {
+        const element = current as HTMLElement;
+        const tag = element.tagName.toLowerCase();
+
+        if (["p", "div", "h1", "h2", "h3", "li", "blockquote"].includes(tag)) {
+          return element;
+        }
+      }
+
+      current = current.parentNode;
+    }
+
+    return null;
+  }
+
+  function insertHeading(level: number) {
+    restoreSelection();
+
+    const selection = window.getSelection();
+
+    if (!selection || selection.rangeCount === 0 || !isSelectionInsideEditor(selection)) {
+      return;
+    }
+
+    const range = selection.getRangeAt(0);
+    const heading = document.createElement(`h${level}`);
+
+    if (range.collapsed) {
+      const block = findEditableBlock(range.startContainer);
+
+      if (block) {
+        heading.innerHTML = block.innerHTML || `标题 ${level}`;
+        block.replaceWith(heading);
+      } else {
+        heading.textContent = `标题 ${level}`;
+        range.insertNode(heading);
+      }
+    } else {
+      heading.appendChild(range.extractContents());
       range.deleteContents();
       range.insertNode(heading);
-      
-      // 将光标移到标题后面
-      range.setStartAfter(heading);
-      range.setEndAfter(heading);
-      selection.removeAllRanges();
-      selection.addRange(range);
-      
-      handleInput();
     }
-    
+
+    moveCursorAfter(heading);
     editorRef.current?.focus();
+    handleInput();
   }
 
   function insertLink() {
@@ -477,7 +558,7 @@ export const SimpleRichEditor = forwardRef<SimpleRichEditorHandle, SimpleRichEdi
             e.preventDefault(); // 防止失去焦点
             saveSelection();
           }}
-          onClick={() => execCommand("bold")}
+          onClick={applyBold}
           disabled={disabled}
           title="粗体 (Ctrl+B)"
         >
