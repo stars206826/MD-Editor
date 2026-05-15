@@ -95,8 +95,21 @@ export const SimpleRichEditor = forwardRef<SimpleRichEditorHandle, SimpleRichEdi
   // 简单的 Markdown 到 HTML 转换
   function markdownToHtml(markdown: string): string {
     if (!markdown) return "";
+
+    const codeBlocks: string[] = [];
     
     let html = markdown
+      .replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g, (_match, language, code) => {
+        const index = codeBlocks.length;
+        const escapedCode = String(code)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+        const languageClass = language ? ` class="language-${language}"` : "";
+
+        codeBlocks.push(`<pre><code${languageClass}>${escapedCode}</code></pre>`);
+        return `@@CODE_BLOCK_${index}@@`;
+      })
       // 标题
       .replace(/^### (.*$)/gim, '<h3>$1</h3>')
       .replace(/^## (.*$)/gim, '<h2>$1</h2>')
@@ -115,6 +128,8 @@ export const SimpleRichEditor = forwardRef<SimpleRichEditorHandle, SimpleRichEdi
       .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" />')
       // 换行
       .replace(/\n/g, '<br>');
+
+    html = html.replace(/@@CODE_BLOCK_(\d+)@@/g, (_match, index) => codeBlocks[Number(index)] ?? "");
     
     return html;
   }
@@ -172,6 +187,16 @@ export const SimpleRichEditor = forwardRef<SimpleRichEditorHandle, SimpleRichEdi
         .join("\n");
     }
 
+    function getCodeLanguage(element: HTMLElement): string {
+      const code = element.tagName.toLowerCase() === "code"
+        ? element
+        : element.querySelector("code");
+      const className = code?.getAttribute("class") ?? "";
+      const language = className.match(/language-([a-zA-Z0-9_-]+)/)?.[1] ?? "";
+
+      return language;
+    }
+
     function serializeElement(element: HTMLElement): string {
       const tag = element.tagName.toLowerCase();
       const content = serializeChildren(element);
@@ -195,6 +220,12 @@ export const SimpleRichEditor = forwardRef<SimpleRichEditorHandle, SimpleRichEdi
           return `~~${content}~~`;
         case "u":
           return `<u>${content}</u>`;
+        case "pre": {
+          const language = getCodeLanguage(element);
+          const code = element.textContent ?? "";
+
+          return `\n\`\`\`${language}\n${code.replace(/\n+$/g, "")}\n\`\`\`\n`;
+        }
         case "code":
           return `\`${content}\``;
         case "a": {
@@ -556,6 +587,37 @@ export const SimpleRichEditor = forwardRef<SimpleRichEditorHandle, SimpleRichEdi
     }
   }
 
+  function handlePaste(event: React.ClipboardEvent<HTMLDivElement>) {
+    const text = event.clipboardData.getData("text/plain");
+
+    if (!text) {
+      return;
+    }
+
+    event.preventDefault();
+    restoreSelection();
+
+    const selection = window.getSelection();
+
+    if (!selection || selection.rangeCount === 0 || !isSelectionInsideEditor(selection)) {
+      return;
+    }
+
+    const range = selection.getRangeAt(0);
+    const fragment = document.createDocumentFragment();
+    const pastedContent = document.createElement("div");
+    pastedContent.innerHTML = markdownToHtml(text.replace(/\r\n/g, "\n"));
+
+    while (pastedContent.firstChild) {
+      fragment.appendChild(pastedContent.firstChild);
+    }
+
+    range.deleteContents();
+    range.insertNode(fragment);
+    selection.removeAllRanges();
+    handleInput();
+  }
+
   return (
     <div className="space-y-2">
       {/* 工具栏 */}
@@ -747,6 +809,7 @@ export const SimpleRichEditor = forwardRef<SimpleRichEditorHandle, SimpleRichEdi
           ref={editorRef}
           contentEditable={!disabled}
           onInput={handleInput}
+          onPaste={handlePaste}
           onFocus={() => setIsFocused(true)}
           onBlur={() => {
             handleInput();
