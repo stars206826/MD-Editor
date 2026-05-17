@@ -70,14 +70,14 @@ export function ShareDialog({
       
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || "Failed to load share link");
+        throw new Error(data.error || "加载分享链接失败");
       }
 
       const data = await response.json();
       setShareLink(data.shareLink);
       setShowCreateForm(!data.shareLink);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load share link");
+      setError(err instanceof Error ? err.message : "加载分享链接失败");
     } finally {
       setIsLoading(false);
     }
@@ -91,7 +91,7 @@ export function ShareDialog({
       // Validate expiration days
       const expirationDays = expiresInDays ? parseInt(expiresInDays, 10) : undefined;
       if (expirationDays !== undefined && (isNaN(expirationDays) || expirationDays <= 0)) {
-        throw new Error("Expiration days must be a positive number");
+        throw new Error("过期天数必须是正整数");
       }
 
       // Create share link (Requirement 8.1, 8.3, 8.4)
@@ -109,7 +109,7 @@ export function ShareDialog({
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || "Failed to create share link");
+        throw new Error(data.error || "创建分享链接失败");
       }
 
       const data = await response.json();
@@ -120,7 +120,7 @@ export function ShareDialog({
       setExpiresInDays("");
       setPassword("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create share link");
+      setError(err instanceof Error ? err.message : "创建分享链接失败");
     } finally {
       setIsCreating(false);
     }
@@ -153,13 +153,13 @@ export function ShareDialog({
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || "Failed to revoke share link");
+        throw new Error(data.error || "撤销分享链接失败");
       }
 
       setShareLink(null);
       setShowCreateForm(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to revoke share link");
+      setError(err instanceof Error ? err.message : "撤销分享链接失败");
     } finally {
       setIsRevoking(false);
     }
@@ -179,7 +179,7 @@ export function ShareDialog({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      setError("Failed to copy link to clipboard");
+      setError("复制链接失败");
     }
   }
 
@@ -196,14 +196,14 @@ export function ShareDialog({
         <div className="space-y-4 py-4">
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-sky-400 border-t-transparent" />
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" />
             </div>
           ) : shareLink ? (
             // Display existing share link
             <div className="space-y-4">
               {/* Share URL with copy button */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300">
+                <label className="text-sm font-medium text-stone-600">
                   分享链接
                 </label>
                 <div className="flex gap-2">
@@ -223,16 +223,16 @@ export function ShareDialog({
               </div>
 
               {/* Share link stats (Requirement 8.7) */}
-              <div className="grid grid-cols-2 gap-4 rounded-lg border border-border bg-slate-900/50 p-4">
+              <div className="grid grid-cols-2 gap-4 rounded-lg border border-stone-200 bg-stone-50 p-4">
                 <div>
-                  <p className="text-xs text-slate-400">浏览次数</p>
-                  <p className="text-lg font-semibold text-slate-200">
+                  <p className="text-xs text-stone-500">浏览次数</p>
+                  <p className="text-lg font-semibold text-stone-800">
                     {shareLink.view_count}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-slate-400">最后浏览</p>
-                  <p className="text-sm text-slate-200">
+                  <p className="text-xs text-stone-500">最后浏览</p>
+                  <p className="text-sm text-stone-800">
                     {shareLink.last_viewed_at
                       ? formatDate(shareLink.last_viewed_at)
                       : "从未"}
@@ -241,24 +241,24 @@ export function ShareDialog({
               </div>
 
               {/* Share link details */}
-              <div className="space-y-2 rounded-lg border border-border bg-slate-900/50 p-4 text-sm">
+              <div className="space-y-2 rounded-lg border border-stone-200 bg-stone-50 p-4 text-sm">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400">创建时间</span>
-                  <span className="text-slate-200">
+                  <span className="text-stone-500">创建时间</span>
+                  <span className="text-stone-800">
                     {formatDate(shareLink.created_at)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400">过期时间</span>
-                  <span className="text-slate-200">
+                  <span className="text-stone-500">过期时间</span>
+                  <span className="text-stone-800">
                     {shareLink.expires_at
                       ? formatDate(shareLink.expires_at)
                       : "永不过期"}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400">密码保护</span>
-                  <span className="text-slate-200">
+                  <span className="text-stone-500">密码保护</span>
+                  <span className="text-stone-800">
                     {shareLink.has_password ? "是" : "否"}
                   </span>
                 </div>
@@ -278,7 +278,7 @@ export function ShareDialog({
             // Create new share link form (Requirement 8.1, 8.3, 8.4)
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300">
+                <label className="text-sm font-medium text-stone-600">
                   过期时间（可选）
                 </label>
                 <Input
@@ -289,13 +289,13 @@ export function ShareDialog({
                   disabled={isCreating}
                   min="1"
                 />
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-stone-400">
                   设置链接的有效期，过期后将无法访问
                 </p>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300">
+                <label className="text-sm font-medium text-stone-600">
                   访问密码（可选）
                 </label>
                 <Input
@@ -305,7 +305,7 @@ export function ShareDialog({
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isCreating}
                 />
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-stone-400">
                   设置密码后，访问者需要输入密码才能查看文档
                 </p>
               </div>
@@ -323,8 +323,8 @@ export function ShareDialog({
 
           {/* Error message (Requirement 12.1) */}
           {error && (
-            <div className="rounded-lg border border-red-400/20 bg-red-500/10 px-4 py-3">
-              <p className="text-sm text-red-200">{error}</p>
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+              <p className="text-sm text-red-600">{error}</p>
             </div>
           )}
         </div>

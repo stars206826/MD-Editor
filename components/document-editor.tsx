@@ -52,12 +52,12 @@ export function DocumentEditor({ document }: DocumentEditorProps) {
     try {
       const response = await fetch(`/api/documents/${document.id}`);
       if (!response.ok) {
-        throw new Error("Failed to load document tags");
+        throw new Error("加载文档标签失败");
       }
       const data = await response.json();
       setDocumentTags(data.document.tags || []);
     } catch (err) {
-      console.error("Failed to load tags:", err);
+      console.error("加载标签失败:", err);
     }
   }
 
@@ -67,12 +67,12 @@ export function DocumentEditor({ document }: DocumentEditorProps) {
     try {
       const response = await fetch(`/api/versions/${document.id}`);
       if (!response.ok) {
-        throw new Error("Failed to load versions");
+        throw new Error("加载版本历史失败");
       }
       const data = await response.json();
       setVersions(data.versions || []);
     } catch (err) {
-      console.error("Failed to load versions:", err);
+      console.error("加载版本历史失败:", err);
       setError("无法加载历史版本");
     } finally {
       setLoadingVersions(false);
@@ -288,12 +288,12 @@ export function DocumentEditor({ document }: DocumentEditorProps) {
         <div className="space-y-2">
           <Link 
             href="/dashboard" 
-            className="text-sm text-sky-300 hover:text-sky-200"
+            className="text-sm text-amber-600 hover:text-amber-500"
             onClick={handleBackToList}
           >
             ← 返回文档列表
           </Link>
-          <div className="flex flex-wrap items-center gap-3 text-sm text-slate-400">
+          <div className="flex flex-wrap items-center gap-3 text-sm text-stone-500">
             <span>
               {saveState === "saving" && "保存中..."}
               {saveState === "saved" && (isOnline ? "已保存" : "已离线保存")}
@@ -302,7 +302,7 @@ export function DocumentEditor({ document }: DocumentEditorProps) {
               {saveState === "idle" && !hasUnsavedChanges && "所有更改已保存"}
             </span>
             {!isOnline && (
-              <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-xs text-amber-300">
+              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700">
                 离线模式
               </span>
             )}
@@ -343,12 +343,12 @@ export function DocumentEditor({ document }: DocumentEditorProps) {
         </div>
       </div>
 
-      {error ? <p className="rounded-xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">{error}</p> : null}
+      {error ? <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{error}</p> : null}
 
       <div className="space-y-4">
-        <section className="space-y-4 rounded-3xl border border-border bg-slate-900/70 p-6 shadow-panel">
+        <section className="space-y-4 rounded-2xl border border-stone-200 bg-white/80 p-6 shadow-panel backdrop-blur-sm">
           <div className="space-y-2">
-            <label className="text-sm text-slate-300">标题</label>
+            <label className="text-sm text-stone-600">标题</label>
             <Input 
               value={title} 
               onChange={(event) => setTitle(event.target.value)} 
@@ -358,7 +358,7 @@ export function DocumentEditor({ document }: DocumentEditorProps) {
           </div>
           
           <div className="space-y-2">
-            <label className="text-sm text-slate-300">正文</label>
+            <label className="text-sm text-stone-600">正文</label>
             <SimpleRichEditor
               ref={editorRef}
               content={content}
@@ -368,7 +368,7 @@ export function DocumentEditor({ document }: DocumentEditorProps) {
               onImageClick={handleOpenImageEditor}
             />
             {isUploadingImage && (
-              <div className="text-sm text-sky-400">
+              <div className="text-sm text-amber-600">
                 正在上传图片...
               </div>
             )}
@@ -405,7 +405,7 @@ export function DocumentEditor({ document }: DocumentEditorProps) {
           </DialogHeader>
           {loadingVersions ? (
             <div className="flex items-center justify-center py-8">
-              <p className="text-sm text-slate-400">加载中...</p>
+              <p className="text-sm text-stone-500">加载中...</p>
             </div>
           ) : (
             <VersionHistory

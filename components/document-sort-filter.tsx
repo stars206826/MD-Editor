@@ -41,12 +41,12 @@ export function DocumentSortFilter({
     try {
       const response = await fetch("/api/tags");
       if (!response.ok) {
-        throw new Error("Failed to load tags");
+        throw new Error("加载标签失败");
       }
       const data = await response.json();
       setAvailableTags(data.tags || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load tags");
+      setError(err instanceof Error ? err.message : "加载标签失败");
     } finally {
       setIsLoading(false);
     }
@@ -78,11 +78,11 @@ export function DocumentSortFilter({
   const hasActiveFilters = selectedTags.length > 0;
 
   return (
-    <div className="space-y-4 rounded-xl border border-border bg-slate-900/50 p-4">
+    <div className="space-y-4 rounded-xl border border-stone-200 bg-white/60 p-4">
       <div className="flex flex-wrap items-center gap-3">
         {/* Sort Field Selector */}
         <div className="flex items-center gap-2">
-          <label className="text-sm text-slate-300 whitespace-nowrap">排序:</label>
+          <label className="text-sm text-stone-600 whitespace-nowrap">排序:</label>
           <Select
             value={sortField}
             onChange={(e) => handleSortFieldChange(e.target.value as SortField)}
@@ -119,7 +119,7 @@ export function DocumentSortFilter({
       {/* Tag Filter */}
       {availableTags.length > 0 && (
         <div className="space-y-2">
-          <label className="text-sm text-slate-300">按标签筛选:</label>
+          <label className="text-sm text-stone-600">按标签筛选:</label>
           <div className="flex flex-wrap gap-2">
             {availableTags.map((tag) => {
               const isSelected = selectedTags.includes(tag.id);
@@ -129,8 +129,8 @@ export function DocumentSortFilter({
                   onClick={() => handleTagToggle(tag.id)}
                   className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm transition-colors ${
                     isSelected
-                      ? "border-sky-500 bg-sky-500/20 text-sky-200"
-                      : "border-border bg-slate-800/50 text-slate-300 hover:bg-slate-800"
+                      ? "border-amber-500 bg-amber-50 text-amber-800"
+                      : "border-stone-200 bg-stone-50 text-stone-600 hover:bg-stone-100"
                   }`}
                   aria-pressed={isSelected}
                 >
@@ -145,7 +145,7 @@ export function DocumentSortFilter({
             })}
           </div>
           {selectedTags.length > 0 && (
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-stone-500">
               已选择 {selectedTags.length} 个标签 (显示包含所有选中标签的文档)
             </p>
           )}
@@ -154,12 +154,12 @@ export function DocumentSortFilter({
 
       {/* Error Message */}
       {error && (
-        <p className="text-sm text-red-400">{error}</p>
+        <p className="text-sm text-red-500">{error}</p>
       )}
 
       {/* Loading State */}
       {isLoading && availableTags.length === 0 && (
-        <p className="text-sm text-slate-400">加载标签中...</p>
+        <p className="text-sm text-stone-500">加载标签中...</p>
       )}
     </div>
   );

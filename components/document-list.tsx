@@ -75,13 +75,13 @@ export function DocumentList({ documents: initialDocuments }: DocumentListProps)
       
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || "Failed to fetch documents");
+        throw new Error(data.error || "获取文档列表失败");
       }
 
       const data = await response.json();
       setDocuments(data.documents || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch documents");
+      setError(err instanceof Error ? err.message : "获取文档列表失败");
     } finally {
       setIsLoadingFiltered(false);
     }
@@ -253,7 +253,7 @@ export function DocumentList({ documents: initialDocuments }: DocumentListProps)
           // Odd indices are the highlighted parts
           if (index % 2 === 1) {
             return (
-              <span key={index} className="bg-yellow-500/20 text-yellow-200 font-medium">
+              <span key={index} className="bg-amber-100 text-amber-800 font-medium">
                 {part}
               </span>
             );
@@ -268,8 +268,8 @@ export function DocumentList({ documents: initialDocuments }: DocumentListProps)
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-white">全部文档</h2>
-          <p className="text-sm text-slate-400">
+          <h2 className="text-lg font-semibold text-stone-800">全部文档</h2>
+          <p className="text-sm text-stone-500">
             {isShowingSearchResults
               ? `搜索结果 (${displayDocuments.length})`
               : hasActiveFilters
@@ -313,19 +313,19 @@ export function DocumentList({ documents: initialDocuments }: DocumentListProps)
         />
       )}
 
-      {error ? <p className="rounded-xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">{error}</p> : null}
+      {error ? <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{error}</p> : null}
 
       {isLoadingFiltered && !isShowingSearchResults ? (
         <Card className="flex min-h-72 flex-col items-center justify-center gap-4 p-8 text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-700 border-t-sky-500"></div>
-          <p className="text-sm text-slate-400">加载中...</p>
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-stone-200 border-t-amber-500"></div>
+          <p className="text-sm text-stone-500">加载中...</p>
         </Card>
       ) : displayDocuments.length === 0 ? (
         <Card className="flex min-h-72 flex-col items-center justify-center gap-4 p-8 text-center">
           {isShowingSearchResults ? (
             <>
-              <h3 className="text-xl font-medium text-white">未找到匹配的文档</h3>
-              <p className="max-w-md text-sm leading-7 text-slate-400">
+              <h3 className="text-xl font-medium text-stone-800">未找到匹配的文档</h3>
+              <p className="max-w-md text-sm leading-7 text-stone-500">
                 尝试使用不同的关键词搜索，或清空搜索查看所有文档。
               </p>
               <Button onClick={handleClearSearch} variant="secondary">
@@ -334,8 +334,8 @@ export function DocumentList({ documents: initialDocuments }: DocumentListProps)
             </>
           ) : hasActiveFilters ? (
             <>
-              <h3 className="text-xl font-medium text-white">没有匹配的文档</h3>
-              <p className="max-w-md text-sm leading-7 text-slate-400">
+              <h3 className="text-xl font-medium text-stone-800">没有匹配的文档</h3>
+              <p className="max-w-md text-sm leading-7 text-stone-500">
                 没有文档包含所有选中的标签。尝试减少筛选条件。
               </p>
               <Button onClick={() => setSelectedTags([])} variant="secondary">
@@ -344,8 +344,8 @@ export function DocumentList({ documents: initialDocuments }: DocumentListProps)
             </>
           ) : (
             <>
-              <h3 className="text-xl font-medium text-white">还没有文档</h3>
-              <p className="max-w-md text-sm leading-7 text-slate-400">
+              <h3 className="text-xl font-medium text-stone-800">还没有文档</h3>
+              <p className="max-w-md text-sm leading-7 text-stone-500">
                 先创建你的第一篇 Markdown 文档，之后你就可以在不同设备之间继续编辑。
               </p>
               <Button onClick={handleCreate} disabled={creating}>
@@ -384,10 +384,10 @@ export function DocumentList({ documents: initialDocuments }: DocumentListProps)
                   ) : (
                     <>
                       <div className="space-y-2">
-                        <Link href={`/dashboard/doc/${document.id}`} className="block text-lg font-semibold text-white hover:text-sky-300">
+                        <Link href={`/dashboard/doc/${document.id}`} className="block text-lg font-semibold text-stone-800 hover:text-amber-700">
                           {highlightMatches(document.title, isShowingSearchResults)}
                         </Link>
-                        <p className="line-clamp-3 text-sm leading-7 text-slate-400">
+                        <p className="line-clamp-3 text-sm leading-7 text-stone-500">
                           {isShowingSearchResults && "excerpt" in document
                             ? highlightExcerpt((document as SearchResult).excerpt)
                             : document.content || "空文档"}
@@ -398,18 +398,18 @@ export function DocumentList({ documents: initialDocuments }: DocumentListProps)
                           {document.tags.map((tag) => (
                             <div
                               key={tag.id}
-                              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-slate-800/50 px-2 py-1"
+                              className="inline-flex items-center gap-1.5 rounded-md border border-stone-200 bg-stone-50 px-2 py-1"
                             >
                               <div
                                 className="h-2 w-2 rounded-full"
                                 style={{ backgroundColor: tag.color }}
                               />
-                              <span className="text-xs text-slate-300">{tag.name}</span>
+                              <span className="text-xs text-stone-600">{tag.name}</span>
                             </div>
                           ))}
                         </div>
                       )}
-                      <p className="text-xs text-slate-500">更新于 {formatDate(document.updated_at)}</p>
+                      <p className="text-xs text-stone-400">更新于 {formatDate(document.updated_at)}</p>
                     </>
                   )}
                 </div>

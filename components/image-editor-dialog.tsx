@@ -267,15 +267,15 @@ export function ImageEditorDialog({
             <Button onClick={handleSelectFile} variant="secondary" className="w-full">
               📁 选择图片文件
             </Button>
-            <p className="text-xs text-slate-500 text-center">
+            <p className="text-xs text-stone-400 text-center">
               支持 JPEG、PNG、GIF、WebP 格式，最大 10MB
             </p>
           </div>
 
           {/* 错误提示 */}
           {error && (
-            <div className="rounded-lg border border-red-400/20 bg-red-500/10 px-4 py-3">
-              <p className="text-sm text-red-200">{error}</p>
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+              <p className="text-sm text-red-600">{error}</p>
             </div>
           )}
 
@@ -283,7 +283,7 @@ export function ImageEditorDialog({
           {previewUrl && (
             <div className="space-y-4">
               {/* 预览区域 */}
-              <div className="relative rounded-lg border border-border bg-slate-950/50 p-4">
+              <div className="relative rounded-lg border border-stone-200 bg-stone-50 p-4">
                 <div
                   className="relative mx-auto max-h-96 overflow-hidden"
                   style={{ maxWidth: "100%" }}
@@ -316,7 +316,7 @@ export function ImageEditorDialog({
                 
                 <canvas ref={canvasRef} className="hidden" />
                 
-                <p className="mt-2 text-center text-xs text-slate-400">
+                <p className="mt-2 text-center text-xs text-stone-500">
                   原始尺寸: {imageWidth} × {imageHeight} 像素
                 </p>
               </div>
@@ -332,7 +332,7 @@ export function ImageEditorDialog({
                 <div className="space-y-2">
                   <div className="grid gap-3 md:grid-cols-2">
                     <div className="space-y-2">
-                      <label className="text-xs text-slate-400">缩放</label>
+                      <label className="text-xs text-stone-500">缩放</label>
                       <input
                         type="range"
                         min={1}
@@ -344,14 +344,14 @@ export function ImageEditorDialog({
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-xs text-slate-400">裁剪比例</label>
+                      <label className="text-xs text-stone-500">裁剪比例</label>
                       <select
                         value={aspect ?? "free"}
                         onChange={(e) => {
                           const value = e.target.value;
                           setAspect(value === "free" ? null : Number(value));
                         }}
-                        className="w-full rounded-lg border border-border bg-slate-900 px-3 py-2 text-xs text-slate-200"
+                        className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-xs text-stone-700"
                       >
                         <option value="free">自由</option>
                         <option value="1">1:1</option>
@@ -373,9 +373,9 @@ export function ImageEditorDialog({
 
               {/* 尺寸调整 */}
               {!cropMode && (
-                <div className="space-y-3 rounded-lg border border-border bg-slate-900/50 p-4">
+                <div className="space-y-3 rounded-lg border border-stone-200 bg-stone-50 p-4">
                   <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium text-slate-300">
+                    <label className="text-sm font-medium text-stone-600">
                       调整尺寸
                     </label>
                     <Button onClick={handleResetSize} variant="ghost" size="sm">
@@ -385,7 +385,7 @@ export function ImageEditorDialog({
                   
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <label className="text-xs text-slate-400">宽度 (像素)</label>
+                      <label className="text-xs text-stone-500">宽度 (像素)</label>
                       <Input
                         type="number"
                         value={displayWidth}
@@ -395,7 +395,7 @@ export function ImageEditorDialog({
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-xs text-slate-400">高度 (像素)</label>
+                      <label className="text-xs text-stone-500">高度 (像素)</label>
                       <Input
                         type="number"
                         value={displayHeight}
@@ -412,9 +412,9 @@ export function ImageEditorDialog({
                       id="aspectRatio"
                       checked={maintainAspectRatio}
                       onChange={(e) => setMaintainAspectRatio(e.target.checked)}
-                      className="h-4 w-4 rounded border-border bg-slate-900 text-sky-500"
+                      className="h-4 w-4 rounded border-stone-300 bg-white text-amber-500"
                     />
-                    <label htmlFor="aspectRatio" className="text-sm text-slate-300 cursor-pointer">
+                    <label htmlFor="aspectRatio" className="text-sm text-stone-600 cursor-pointer">
                       保持宽高比
                     </label>
                   </div>

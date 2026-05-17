@@ -51,9 +51,9 @@ export default function SharePage() {
         // Check if expired (Requirement 8.9)
         if (data.expired) {
           setIsExpired(true);
-          setError(data.error || "This share link has expired");
+          setError(data.error || "该分享链接已过期");
         } else {
-          setError(data.error || "Failed to load shared document");
+          setError(data.error || "加载分享文档失败");
         }
         return;
       }
@@ -65,7 +65,7 @@ export default function SharePage() {
         setDocument(data.document);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load shared document");
+      setError(err instanceof Error ? err.message : "加载分享文档失败");
     } finally {
       setIsLoading(false);
     }
@@ -75,7 +75,7 @@ export default function SharePage() {
     e.preventDefault();
 
     if (!password.trim()) {
-      setError("Please enter a password");
+      setError("请输入密码");
       return;
     }
 
@@ -94,14 +94,14 @@ export default function SharePage() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || "Invalid password");
+        setError(data.error || "密码错误");
         return;
       }
 
       setDocument(data.document);
       setRequiresPassword(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to verify password");
+      setError(err instanceof Error ? err.message : "验证密码失败");
     } finally {
       setIsVerifying(false);
     }
@@ -109,10 +109,10 @@ export default function SharePage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950">
+      <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-sky-400 border-t-transparent mx-auto" />
-          <p className="text-slate-400">Loading shared document...</p>
+          <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-stone-200 border-t-amber-500 mx-auto" />
+          <p className="text-stone-500">加载分享文档中...</p>
         </div>
       </div>
     );
@@ -120,14 +120,14 @@ export default function SharePage() {
 
   if (isExpired) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950 p-4">
+      <div className="flex min-h-screen items-center justify-center p-4">
         <div className="max-w-md text-center">
           <div className="mb-4 text-6xl">⏰</div>
-          <h1 className="mb-2 text-2xl font-bold text-slate-200">
-            Link Expired
+          <h1 className="mb-2 text-2xl font-bold text-stone-800">
+            链接已过期
           </h1>
-          <p className="text-slate-400">
-            This share link has expired and is no longer accessible.
+          <p className="text-stone-500">
+            该分享链接已过期，无法再访问。
           </p>
         </div>
       </div>
@@ -136,13 +136,13 @@ export default function SharePage() {
 
   if (error && !requiresPassword) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950 p-4">
+      <div className="flex min-h-screen items-center justify-center p-4">
         <div className="max-w-md text-center">
           <div className="mb-4 text-6xl">❌</div>
-          <h1 className="mb-2 text-2xl font-bold text-slate-200">
-            Error
+          <h1 className="mb-2 text-2xl font-bold text-stone-800">
+            出错了
           </h1>
-          <p className="text-slate-400">{error}</p>
+          <p className="text-stone-500">{error}</p>
         </div>
       </div>
     );
@@ -150,15 +150,15 @@ export default function SharePage() {
 
   if (requiresPassword) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950 p-4">
-        <div className="w-full max-w-md space-y-6 rounded-2xl border border-border bg-slate-900 p-8 shadow-xl">
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <div className="w-full max-w-md space-y-6 rounded-2xl border border-stone-200 bg-white p-8 shadow-xl">
           <div className="text-center">
             <div className="mb-4 text-5xl">🔒</div>
-            <h1 className="mb-2 text-2xl font-bold text-slate-200">
-              Password Protected
+            <h1 className="mb-2 text-2xl font-bold text-stone-800">
+              需要密码
             </h1>
-            <p className="text-sm text-slate-400">
-              This document is password protected. Please enter the password to view it.
+            <p className="text-sm text-stone-500">
+              该文档已设置密码保护，请输入密码以查看。
             </p>
           </div>
 
@@ -166,7 +166,7 @@ export default function SharePage() {
             <div>
               <Input
                 type="password"
-                placeholder="Enter password"
+                placeholder="请输入密码"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isVerifying}
@@ -175,8 +175,8 @@ export default function SharePage() {
             </div>
 
             {error && (
-              <div className="rounded-lg border border-red-400/20 bg-red-500/10 px-4 py-3">
-                <p className="text-sm text-red-200">{error}</p>
+              <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+                <p className="text-sm text-red-600">{error}</p>
               </div>
             )}
 
@@ -186,7 +186,7 @@ export default function SharePage() {
               disabled={isVerifying || !password.trim()}
               className="w-full"
             >
-              {isVerifying ? "Verifying..." : "Access Document"}
+              {isVerifying ? "验证中..." : "访问文档"}
             </Button>
           </form>
         </div>
@@ -196,39 +196,39 @@ export default function SharePage() {
 
   if (!document) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950 p-4">
+      <div className="flex min-h-screen items-center justify-center p-4">
         <div className="text-center">
           <div className="mb-4 text-6xl">📄</div>
-          <p className="text-slate-400">No document found</p>
+          <p className="text-stone-500">未找到文档</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 p-4 sm:p-8">
+    <div className="min-h-screen p-4 sm:p-8">
       <div className="mx-auto max-w-4xl">
         {/* Header */}
-        <div className="mb-8 rounded-2xl border border-border bg-slate-900 p-6 shadow-xl">
-          <div className="mb-2 flex items-center gap-2 text-sm text-slate-400">
+        <div className="mb-8 rounded-2xl border border-stone-200 bg-white/80 p-6 shadow-panel backdrop-blur-sm">
+          <div className="mb-2 flex items-center gap-2 text-sm text-stone-500">
             <span>🔗</span>
-            <span>Shared Document</span>
-            <span>•</span>
-            <span>Read-only</span>
+            <span>分享文档</span>
+            <span>·</span>
+            <span>只读</span>
           </div>
-          <h1 className="mb-3 text-3xl font-bold text-slate-100">
+          <h1 className="mb-3 text-3xl font-bold text-stone-800">
             {document.title}
           </h1>
-          <div className="flex flex-wrap gap-4 text-sm text-slate-400">
-            <span>Created: {formatDate(document.created_at)}</span>
-            <span>•</span>
-            <span>Updated: {formatDate(document.updated_at)}</span>
+          <div className="flex flex-wrap gap-4 text-sm text-stone-500">
+            <span>创建于: {formatDate(document.created_at)}</span>
+            <span>·</span>
+            <span>更新于: {formatDate(document.updated_at)}</span>
           </div>
         </div>
 
         {/* Document content */}
-        <div className="rounded-2xl border border-border bg-slate-900 shadow-xl">
-          <article className="prose prose-invert max-w-none px-6 py-8 sm:px-8 prose-headings:text-white prose-p:text-slate-300 prose-strong:text-white prose-code:text-sky-200 prose-pre:bg-slate-950/80 prose-blockquote:text-slate-300 prose-del:line-through">
+        <div className="rounded-2xl border border-stone-200 bg-white shadow-panel">
+          <article className="prose max-w-none px-6 py-8 sm:px-8 prose-headings:text-stone-800 prose-p:text-stone-700 prose-strong:text-stone-900 prose-code:text-amber-700 prose-pre:bg-stone-50 prose-blockquote:text-stone-600 prose-del:line-through">
             <ReactMarkdown 
               remarkPlugins={[[remarkGfm, { singleTilde: false }]]}
             >
@@ -238,8 +238,8 @@ export default function SharePage() {
         </div>
 
         {/* Footer */}
-        <div className="mt-8 text-center text-sm text-slate-500">
-          <p>This document is shared in read-only mode</p>
+        <div className="mt-8 text-center text-sm text-stone-400">
+          <p>该文档以只读模式分享</p>
         </div>
       </div>
     </div>

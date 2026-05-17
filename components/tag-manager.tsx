@@ -44,12 +44,12 @@ export function TagManager({
     try {
       const response = await fetch("/api/tags");
       if (!response.ok) {
-        throw new Error("Failed to load tags");
+        throw new Error("加载标签失败");
       }
       const data = await response.json();
       setAvailableTags(data.tags || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load tags");
+      setError(err instanceof Error ? err.message : "加载标签失败");
     }
   }
 
@@ -80,7 +80,7 @@ export function TagManager({
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to create tag");
+        throw new Error(data.error || "创建标签失败");
       }
 
       // Refresh tags list
@@ -91,7 +91,7 @@ export function TagManager({
       setNewTagColor("#3b82f6");
       setIsCreateDialogOpen(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create tag");
+      setError(err instanceof Error ? err.message : "创建标签失败");
     } finally {
       setIsLoading(false);
     }
@@ -124,7 +124,7 @@ export function TagManager({
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to assign tag");
+        throw new Error(data.error || "添加标签失败");
       }
 
       // Reset selection
@@ -133,7 +133,7 @@ export function TagManager({
       // Notify parent to refresh
       onTagsChange();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to assign tag");
+      setError(err instanceof Error ? err.message : "添加标签失败");
     } finally {
       setIsLoading(false);
     }
@@ -155,13 +155,13 @@ export function TagManager({
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || "Failed to remove tag");
+        throw new Error(data.error || "移除标签失败");
       }
 
       // Notify parent to refresh
       onTagsChange();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to remove tag");
+      setError(err instanceof Error ? err.message : "移除标签失败");
     } finally {
       setIsLoading(false);
     }
@@ -180,7 +180,7 @@ export function TagManager({
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || "Failed to delete tag");
+        throw new Error(data.error || "删除标签失败");
       }
 
       // Refresh tags list
@@ -193,7 +193,7 @@ export function TagManager({
       setIsDeleteDialogOpen(false);
       setTagToDelete(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete tag");
+      setError(err instanceof Error ? err.message : "删除标签失败");
     } finally {
       setIsLoading(false);
     }
@@ -213,30 +213,30 @@ export function TagManager({
     <div className="space-y-4">
       {/* Error message */}
       {error && (
-        <div className="rounded-xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
           {error}
         </div>
       )}
 
       {/* Current tags */}
       <div className="space-y-2">
-        <label className="text-sm text-slate-300">文档标签</label>
+        <label className="text-sm text-stone-600">文档标签</label>
         {selectedTags.length > 0 ? (
           <div className="flex flex-wrap gap-2">
             {selectedTags.map((tag) => (
               <div
                 key={tag.id}
-                className="inline-flex items-center gap-2 rounded-lg border border-border bg-slate-800/50 px-3 py-1.5"
+                className="inline-flex items-center gap-2 rounded-lg border border-stone-200 bg-stone-50 px-3 py-1.5"
               >
                 <div
                   className="h-3 w-3 rounded-full"
                   style={{ backgroundColor: tag.color }}
                 />
-                <span className="text-sm text-slate-200">{tag.name}</span>
+                <span className="text-sm text-stone-700">{tag.name}</span>
                 <button
                   onClick={() => handleRemoveTag(tag.id)}
                   disabled={isLoading}
-                  className="ml-1 text-slate-400 hover:text-red-400 disabled:opacity-50"
+                  className="ml-1 text-stone-400 hover:text-red-500 disabled:opacity-50"
                   aria-label="移除标签"
                 >
                   ×
@@ -245,7 +245,7 @@ export function TagManager({
             ))}
           </div>
         ) : (
-          <p className="text-sm text-slate-500">暂无标签</p>
+          <p className="text-sm text-stone-400">暂无标签</p>
         )}
         {selectedTags.length >= 10 && (
           <p className="text-xs text-amber-400">
@@ -257,7 +257,7 @@ export function TagManager({
       {/* Add tag section */}
       {selectedTags.length < 10 && (
         <div className="space-y-2">
-          <label className="text-sm text-slate-300">添加标签</label>
+          <label className="text-sm text-stone-600">添加标签</label>
           <div className="flex gap-2">
             <Select
               value={selectedTagId}
@@ -301,24 +301,24 @@ export function TagManager({
       {/* Manage existing tags */}
       {availableTags.length > 0 && (
         <div className="space-y-2">
-          <label className="text-sm text-slate-300">管理标签</label>
-          <div className="max-h-40 space-y-1 overflow-y-auto rounded-xl border border-border bg-slate-950/30 p-2">
+          <label className="text-sm text-stone-600">管理标签</label>
+          <div className="max-h-40 space-y-1 overflow-y-auto rounded-xl border border-stone-200 bg-stone-50 p-2">
             {availableTags.map((tag) => (
               <div
                 key={tag.id}
-                className="flex items-center justify-between rounded-lg px-3 py-2 hover:bg-slate-800/50"
+                className="flex items-center justify-between rounded-lg px-3 py-2 hover:bg-stone-100"
               >
                 <div className="flex items-center gap-2">
                   <div
                     className="h-3 w-3 rounded-full"
                     style={{ backgroundColor: tag.color }}
                   />
-                  <span className="text-sm text-slate-200">{tag.name}</span>
+                  <span className="text-sm text-stone-700">{tag.name}</span>
                 </div>
                 <button
                   onClick={() => openDeleteDialog(tag)}
                   disabled={isLoading}
-                  className="text-xs text-slate-400 hover:text-red-400 disabled:opacity-50"
+                  className="text-xs text-stone-400 hover:text-red-500 disabled:opacity-50"
                 >
                   删除
                 </button>
@@ -348,7 +348,7 @@ export function TagManager({
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm text-slate-300">标签名称</label>
+              <label className="text-sm text-stone-600">标签名称</label>
               <Input
                 value={newTagName}
                 onChange={(e) => setNewTagName(e.target.value)}
@@ -356,20 +356,20 @@ export function TagManager({
                 maxLength={50}
                 disabled={isLoading}
               />
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-stone-400">
                 {newTagName.length}/50 字符
               </p>
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm text-slate-300">颜色</label>
+              <label className="text-sm text-stone-600">颜色</label>
               <div className="flex gap-2">
                 <input
                   type="color"
                   value={newTagColor}
                   onChange={(e) => setNewTagColor(e.target.value)}
                   disabled={isLoading}
-                  className="h-10 w-20 cursor-pointer rounded-lg border border-border bg-slate-950/60"
+                  className="h-10 w-20 cursor-pointer rounded-lg border border-stone-200 bg-white"
                 />
                 <Input
                   value={newTagColor}
@@ -423,12 +423,12 @@ export function TagManager({
           </DialogHeader>
 
           {tagToDelete && (
-            <div className="my-4 flex items-center gap-2 rounded-lg border border-border bg-slate-800/50 px-4 py-3">
+            <div className="my-4 flex items-center gap-2 rounded-lg border border-stone-200 bg-stone-50 px-4 py-3">
               <div
                 className="h-4 w-4 rounded-full"
                 style={{ backgroundColor: tagToDelete.color }}
               />
-              <span className="text-sm text-slate-200">{tagToDelete.name}</span>
+              <span className="text-sm text-stone-700">{tagToDelete.name}</span>
             </div>
           )}
 

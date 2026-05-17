@@ -57,8 +57,8 @@ export function VersionHistory({
 
   if (versions.length === 0) {
     return (
-      <div className="rounded-xl border border-border bg-slate-900/50 p-6 text-center">
-        <p className="text-sm text-slate-400">暂无历史版本</p>
+      <div className="rounded-xl border border-stone-200 bg-stone-50 p-6 text-center">
+        <p className="text-sm text-stone-500">暂无历史版本</p>
       </div>
     );
   }
@@ -69,16 +69,16 @@ export function VersionHistory({
         {versions.map((version, index) => (
           <div
             key={version.id}
-            className="group relative rounded-xl border border-border bg-slate-900/50 p-4 transition hover:border-sky-400/30 hover:bg-slate-900/70"
+            className="group relative rounded-xl border border-stone-200 bg-white p-4 transition hover:border-amber-300 hover:bg-amber-50/30"
           >
             {/* Timeline connector */}
             {index < versions.length - 1 && (
-              <div className="absolute left-6 top-full h-3 w-0.5 bg-slate-700" />
+              <div className="absolute left-6 top-full h-3 w-0.5 bg-stone-200" />
             )}
 
             <div className="flex items-start gap-4">
               {/* Version badge */}
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sky-400/10 text-sm font-semibold text-sky-400">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100 text-sm font-semibold text-amber-600">
                 v{version.version_number}
               </div>
 
@@ -86,10 +86,10 @@ export function VersionHistory({
               <div className="min-w-0 flex-1 space-y-2">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
-                    <h3 className="truncate text-sm font-medium text-slate-200">
+                    <h3 className="truncate text-sm font-medium text-stone-700">
                       {version.title}
                     </h3>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-stone-500">
                       {formatDate(version.created_at)}
                     </p>
                   </div>
@@ -104,7 +104,7 @@ export function VersionHistory({
                 </div>
 
                 {/* Content preview */}
-                <p className="line-clamp-2 text-xs text-slate-500">
+                <p className="line-clamp-2 text-xs text-stone-400">
                   {getContentPreview(version.content)}
                 </p>
               </div>
@@ -127,22 +127,22 @@ export function VersionHistory({
           </DialogHeader>
 
           {selectedVersion && (
-            <div className="my-4 space-y-2 rounded-lg border border-border bg-slate-950/50 p-3">
+            <div className="my-4 space-y-2 rounded-lg border border-stone-200 bg-stone-50 p-3">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-400">版本号</span>
-                <span className="font-medium text-slate-200">
+                <span className="text-stone-500">版本号</span>
+                <span className="font-medium text-stone-800">
                   v{selectedVersion.version_number}
                 </span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-400">标题</span>
-                <span className="truncate font-medium text-slate-200">
+                <span className="text-stone-500">标题</span>
+                <span className="truncate font-medium text-stone-800">
                   {selectedVersion.title}
                 </span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-400">创建时间</span>
-                <span className="font-medium text-slate-200">
+                <span className="text-stone-500">创建时间</span>
+                <span className="font-medium text-stone-800">
                   {formatDate(selectedVersion.created_at)}
                 </span>
               </div>
@@ -150,7 +150,7 @@ export function VersionHistory({
           )}
 
           {error && (
-            <p className="rounded-lg border border-red-400/20 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+            <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
               {error}
             </p>
           )}

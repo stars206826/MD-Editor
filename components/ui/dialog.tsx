@@ -34,7 +34,7 @@ export const DialogContent = forwardRef<
     <div
       ref={ref}
       className={cn(
-        "mx-4 rounded-2xl border border-border bg-slate-900 p-6 shadow-2xl",
+        "mx-4 rounded-2xl border border-stone-200 bg-white p-6 shadow-2xl",
         className
       )}
       {...props}
@@ -62,7 +62,7 @@ export function DialogTitle({
 }: HTMLAttributes<HTMLHeadingElement>) {
   return (
     <h2
-      className={cn("text-lg font-semibold text-slate-100", className)}
+      className={cn("text-lg font-semibold text-stone-800", className)}
       {...props}
     />
   );
@@ -74,7 +74,7 @@ export function DialogDescription({
 }: HTMLAttributes<HTMLParagraphElement>) {
   return (
     <p
-      className={cn("text-sm text-slate-400", className)}
+      className={cn("text-sm text-stone-500", className)}
       {...props}
     />
   );

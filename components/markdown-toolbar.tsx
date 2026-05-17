@@ -50,7 +50,7 @@ export function MarkdownToolbar({
   ];
 
   return (
-    <div className="flex flex-wrap gap-1 rounded-xl border border-border bg-slate-900/50 p-2">
+    <div className="flex flex-wrap gap-1 rounded-xl border border-stone-200 bg-stone-50 p-2">
       {buttons.map(({ format, label, title }) => (
         <Button
           key={format}

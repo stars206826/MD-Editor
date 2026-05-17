@@ -621,7 +621,7 @@ export const SimpleRichEditor = forwardRef<SimpleRichEditorHandle, SimpleRichEdi
   return (
     <div className="space-y-2">
       {/* 工具栏 */}
-      <div className="flex flex-wrap gap-1 rounded-lg border border-border bg-slate-900/50 p-2">
+      <div className="flex flex-wrap gap-1 rounded-lg border border-stone-200 bg-stone-50/80 p-2">
         <Button
           type="button"
           variant="ghost"
@@ -679,7 +679,7 @@ export const SimpleRichEditor = forwardRef<SimpleRichEditorHandle, SimpleRichEdi
           <s>删除线</s>
         </Button>
         
-        <div className="mx-1 w-px bg-slate-700" />
+        <div className="mx-1 w-px bg-stone-200" />
         
         <Button
           type="button"
@@ -721,7 +721,7 @@ export const SimpleRichEditor = forwardRef<SimpleRichEditorHandle, SimpleRichEdi
           H3
         </Button>
         
-        <div className="mx-1 w-px bg-slate-700" />
+        <div className="mx-1 w-px bg-stone-200" />
         
         <Button
           type="button"
@@ -750,7 +750,7 @@ export const SimpleRichEditor = forwardRef<SimpleRichEditorHandle, SimpleRichEdi
           1. 编号
         </Button>
         
-        <div className="mx-1 w-px bg-slate-700" />
+        <div className="mx-1 w-px bg-stone-200" />
         
         <Button
           type="button"
@@ -779,7 +779,7 @@ export const SimpleRichEditor = forwardRef<SimpleRichEditorHandle, SimpleRichEdi
           🖼️ 图片
         </Button>
         
-        <div className="mx-1 w-px bg-slate-700" />
+        <div className="mx-1 w-px bg-stone-200" />
         
         <Button
           type="button"
@@ -804,7 +804,7 @@ export const SimpleRichEditor = forwardRef<SimpleRichEditorHandle, SimpleRichEdi
       </div>
 
       {/* 编辑器内容区 */}
-      <div className="rounded-lg border border-border bg-slate-900/70 shadow-panel">
+      <div className="rounded-lg border border-stone-200 bg-white shadow-warm">
         <div
           ref={editorRef}
           contentEditable={!disabled}
@@ -818,7 +818,7 @@ export const SimpleRichEditor = forwardRef<SimpleRichEditorHandle, SimpleRichEdi
           }}
           onMouseUp={saveSelection} // 鼠标选择后保存选区
           onKeyUp={saveSelection} // 键盘选择后保存选区
-          className="prose prose-invert max-w-none min-h-[45vh] px-4 py-3 focus:outline-none prose-headings:text-white prose-p:text-slate-300 prose-strong:text-white prose-code:text-sky-200 prose-pre:bg-slate-950/80 prose-blockquote:text-slate-300 prose-ul:text-slate-300 prose-ol:text-slate-300 prose-li:text-slate-300 prose-a:text-sky-400 prose-a:underline"
+          className="prose max-w-none min-h-[45vh] px-4 py-3 focus:outline-none prose-headings:text-stone-800 prose-p:text-stone-700 prose-strong:text-stone-900 prose-code:text-amber-700 prose-pre:bg-stone-50 prose-blockquote:text-stone-600 prose-ul:text-stone-700 prose-ol:text-stone-700 prose-li:text-stone-700 prose-a:text-amber-600 prose-a:underline"
           data-placeholder={placeholder}
           suppressContentEditableWarning
         />

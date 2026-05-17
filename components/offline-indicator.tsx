@@ -77,8 +77,8 @@ export function OfflineIndicator({ onSync }: OfflineIndicatorProps) {
         <div
           className={`flex items-center gap-2 rounded-full px-4 py-2 shadow-lg transition-colors ${
             isOnline
-              ? "bg-green-500/20 text-green-300 hover:bg-green-500/30"
-              : "bg-red-500/20 text-red-300 hover:bg-red-500/30"
+              ? "bg-green-50 text-green-700 border border-green-200 hover:bg-green-100"
+              : "bg-red-50 text-red-700 border border-red-200 hover:bg-red-100"
           }`}
         >
           {/* Status indicator */}
@@ -95,27 +95,27 @@ export function OfflineIndicator({ onSync }: OfflineIndicatorProps) {
 
           {/* Pending changes badge (Requirement 9.11) */}
           {pendingChangesCount > 0 && (
-            <span className="rounded-full bg-sky-500 px-2 py-0.5 text-xs font-semibold text-white">
+            <span className="rounded-full bg-amber-500 px-2 py-0.5 text-xs font-semibold text-white">
               {pendingChangesCount}
             </span>
           )}
 
           {/* Syncing indicator */}
           {isSyncing && (
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-sky-400 border-t-transparent" />
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" />
           )}
         </div>
 
         {/* Details panel */}
         {showDetails && (
-          <div className="absolute bottom-full right-0 mb-2 w-80 rounded-xl border border-border bg-slate-900 p-4 shadow-xl">
+          <div className="absolute bottom-full right-0 mb-2 w-80 rounded-xl border border-stone-200 bg-white p-4 shadow-xl">
             <div className="space-y-3">
               {/* Connection status */}
               <div>
-                <h3 className="text-sm font-semibold text-slate-200">
+                <h3 className="text-sm font-semibold text-stone-700">
                   连接状态
                 </h3>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-stone-500">
                   {isOnline ? "已连接到服务器" : "无法连接到服务器"}
                 </p>
               </div>
@@ -123,10 +123,10 @@ export function OfflineIndicator({ onSync }: OfflineIndicatorProps) {
               {/* Pending changes (Requirement 9.11) */}
               {pendingChangesCount > 0 && (
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-200">
+                  <h3 className="text-sm font-semibold text-stone-700">
                     待同步更改
                   </h3>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-stone-500">
                     {pendingChangesCount} 个文档有未同步的更改
                   </p>
                 </div>
@@ -134,10 +134,10 @@ export function OfflineIndicator({ onSync }: OfflineIndicatorProps) {
 
               {/* Last sync timestamp (Requirement 9.12) */}
               <div>
-                <h3 className="text-sm font-semibold text-slate-200">
+                <h3 className="text-sm font-semibold text-stone-700">
                   最后同步
                 </h3>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-stone-500">
                   {lastSyncAt
                     ? formatDate(lastSyncAt.toISOString())
                     : lastOnlineAt
@@ -148,8 +148,8 @@ export function OfflineIndicator({ onSync }: OfflineIndicatorProps) {
 
               {/* Sync error */}
               {syncError && (
-                <div className="rounded-lg border border-red-400/20 bg-red-500/10 px-3 py-2">
-                  <p className="text-xs text-red-200">{syncError}</p>
+                <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2">
+                  <p className="text-xs text-red-600">{syncError}</p>
                 </div>
               )}
 
@@ -168,8 +168,8 @@ export function OfflineIndicator({ onSync }: OfflineIndicatorProps) {
 
               {/* Offline mode info */}
               {!isOnline && (
-                <div className="rounded-lg border border-sky-400/20 bg-sky-500/10 px-3 py-2">
-                  <p className="text-xs text-sky-200">
+                <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
+                  <p className="text-xs text-amber-700">
                     离线模式：您的更改将保存在本地，并在恢复连接后自动同步
                   </p>
                 </div>

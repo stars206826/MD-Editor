@@ -34,18 +34,18 @@ export function AppLayoutClient({ children, userEmail }: AppLayoutClientProps) {
   return (
     <NetworkProvider>
       <div className="min-h-screen">
-        <header className="border-b border-border bg-slate-950/60 backdrop-blur">
+        <header className="border-b border-stone-200/60 bg-white/70 backdrop-blur-md">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
             <div>
-              <Link href="/dashboard" className="text-lg font-semibold text-white">
+              <Link href="/dashboard" className="text-lg font-semibold text-stone-800">
                 Markdown Sync
               </Link>
               {userEmail && (
-                <p className="text-sm text-slate-400">{userEmail}</p>
+                <p className="text-sm text-stone-500">{userEmail}</p>
               )}
             </div>
             <div className="flex items-center gap-3">
-              <Link href="/dashboard" className="text-sm text-slate-300 hover:text-white">
+              <Link href="/dashboard" className="text-sm text-stone-600 hover:text-amber-700">
                 文档列表
               </Link>
               <LogoutButton />

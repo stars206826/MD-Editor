@@ -46,7 +46,7 @@ export function ImageUploader({
       if (!acceptedFormats.includes(file.type)) {
         return {
           isValid: false,
-          error: `Invalid file type. Only JPEG, PNG, GIF, and WebP images are allowed.`,
+          error: `不支持的文件格式，仅支持 JPEG、PNG、GIF 和 WebP 图片。`,
         };
       }
 
@@ -54,7 +54,7 @@ export function ImageUploader({
       if (file.size > maxSize) {
         return {
           isValid: false,
-          error: `File size exceeds ${(maxSize / 1024 / 1024).toFixed(0)}MB limit. Your file is ${(file.size / 1024 / 1024).toFixed(2)}MB.`,
+          error: `文件大小超过 ${(maxSize / 1024 / 1024).toFixed(0)}MB 限制，当前文件大小为 ${(file.size / 1024 / 1024).toFixed(2)}MB。`,
         };
       }
 
@@ -100,24 +100,24 @@ export function ImageUploader({
                   const response = JSON.parse(xhr.responseText);
                   resolve(response);
                 } catch (err) {
-                  reject(new Error("Failed to parse server response"));
+                  reject(new Error("解析服务器响应失败"));
                 }
               } else {
                 try {
                   const response = JSON.parse(xhr.responseText);
-                  reject(new Error(response.error || "Upload failed"));
+                  reject(new Error(response.error || "上传失败"));
                 } catch (err) {
-                  reject(new Error(`Upload failed with status ${xhr.status}`));
+                  reject(new Error(`上传失败，状态码 ${xhr.status}`));
                 }
               }
             });
 
             xhr.addEventListener("error", () => {
-              reject(new Error("Network error during upload"));
+              reject(new Error("上传时网络错误"));
             });
 
             xhr.addEventListener("abort", () => {
-              reject(new Error("Upload cancelled"));
+              reject(new Error("上传已取消"));
             });
           }
         );
@@ -133,13 +133,13 @@ export function ImageUploader({
           setIsUploading(false);
           onUploadComplete(response.image.url, file.name);
         } else {
-          throw new Error(response.error || "Upload failed");
+          throw new Error(response.error || "上传失败");
         }
       } catch (err) {
         // Upload failed (Requirement 6.10)
         setUploadProgress(null);
         setIsUploading(false);
-        const error = err instanceof Error ? err : new Error("Upload failed");
+        const error = err instanceof Error ? err : new Error("上传失败");
         setValidationError(error.message);
         onUploadError(error);
       }
@@ -156,7 +156,7 @@ export function ImageUploader({
       const validation = validateFile(file);
       if (!validation.isValid) {
         setValidationError(validation.error);
-        onUploadError(new Error(validation.error || "Validation failed"));
+        onUploadError(new Error(validation.error || "文件验证失败"));
         return;
       }
 
@@ -275,22 +275,22 @@ export function ImageUploader({
         onDrop={handleDrop}
         className={`
           relative rounded-xl border-2 border-dashed p-6 text-center transition-colors
-          ${isDragging ? "border-sky-400 bg-sky-500/10" : "border-border bg-slate-900/30"}
-          ${disabled || isUploading ? "cursor-not-allowed opacity-50" : "cursor-pointer hover:border-sky-400/50 hover:bg-slate-900/50"}
+          ${isDragging ? "border-amber-400 bg-amber-50" : "border-stone-300 bg-stone-50"}
+          ${disabled || isUploading ? "cursor-not-allowed opacity-50" : "cursor-pointer hover:border-amber-400/50 hover:bg-stone-100"}
         `}
       >
         <div className="space-y-3">
           <div className="text-4xl">🖼️</div>
           <div className="space-y-1">
-            <p className="text-sm font-medium text-slate-300">
-              {isDragging ? "Drop image here" : "Drag and drop an image"}
+            <p className="text-sm font-medium text-stone-600">
+              {isDragging ? "松开以上传图片" : "拖拽图片到此处"}
             </p>
-            <p className="text-xs text-slate-400">
-              or paste (Ctrl+V) or click the button below
+            <p className="text-xs text-stone-500">
+              或粘贴 (Ctrl+V) 或点击下方按钮选择
             </p>
           </div>
-          <div className="text-xs text-slate-500">
-            Supports JPEG, PNG, GIF, WebP • Max {(maxSize / 1024 / 1024).toFixed(0)}MB
+          <div className="text-xs text-stone-400">
+            支持 JPEG、PNG、GIF、WebP · 最大 {(maxSize / 1024 / 1024).toFixed(0)}MB
           </div>
         </div>
       </div>
@@ -303,7 +303,7 @@ export function ImageUploader({
           variant="secondary"
           className="w-full sm:w-auto"
         >
-          {isUploading ? "Uploading..." : "Choose Image File"}
+          {isUploading ? "上传中..." : "选择图片文件"}
         </Button>
       </div>
 
@@ -320,17 +320,17 @@ export function ImageUploader({
       {/* Upload progress bar (Requirement 6.9) */}
       {uploadProgress && (
         <div className="space-y-2">
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <span>Uploading...</span>
+          <div className="flex items-center justify-between text-xs text-stone-500">
+            <span>上传中...</span>
             <span>{uploadProgress.percentage}%</span>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-slate-800">
+          <div className="h-2 overflow-hidden rounded-full bg-stone-200">
             <div
-              className="h-full bg-sky-500 transition-all duration-300"
+              className="h-full bg-amber-500 transition-all duration-300"
               style={{ width: `${uploadProgress.percentage}%` }}
             />
           </div>
-          <div className="text-xs text-slate-500">
+          <div className="text-xs text-stone-400">
             {(uploadProgress.loaded / 1024).toFixed(0)} KB / {(uploadProgress.total / 1024).toFixed(0)} KB
           </div>
         </div>
@@ -338,7 +338,7 @@ export function ImageUploader({
 
       {/* Validation error (Requirement 6.5) */}
       {validationError && (
-        <div className="rounded-xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
           {validationError}
         </div>
       )}

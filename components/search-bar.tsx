@@ -113,7 +113,7 @@ export function SearchBar({
           {query && (
             <button
               onClick={handleClear}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
               aria-label="清空搜索"
             >
               ✕
@@ -134,15 +134,15 @@ export function SearchBar({
       {/* Search status */}
       <div className="flex items-center gap-2 text-sm">
         {isSearching && (
-          <span className="text-slate-400">搜索中...</span>
+          <span className="text-stone-500">搜索中...</span>
         )}
         {!isSearching && resultCount !== null && (
-          <span className="text-slate-400">
+          <span className="text-stone-500">
             找到 {resultCount} 个结果
           </span>
         )}
         {error && (
-          <span className="text-red-400">{error}</span>
+          <span className="text-red-500">{error}</span>
         )}
       </div>
     </div>
