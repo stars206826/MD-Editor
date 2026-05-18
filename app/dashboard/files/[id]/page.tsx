@@ -112,9 +112,12 @@ export default function FileViewerPage() {
       }
     );
 
-    // Detect paragraphs that look like code (contain multiple programming keywords/syntax)
-    // and are not already in a pre/code block
-    const codePatterns = /[{}();=&]{3,}|function\s|const\s|let\s|var\s|class\s|import\s|#include|#define|void\s|int\s|return\s|if\s*\(|for\s*\(|while\s*\(|FOREACH|TypeRegistry|addEnum/;
+    // Detect paragraphs that look like code
+    // Primary pattern: lines that are very likely code (triggers a code block)
+    const codeStartPattern = /[{}();=&]{3,}|function\s|const\s|let\s|var\s|class\s|import\s|export\s|#include|#define|#pragma|void\s|int\s|bool\s|float\s|double\s|char\s|unsigned\s|return\s|if\s*\(|for\s*\(|while\s*\(|switch\s*\(|FOREACH|ENUM\s*\(|STREAMABLE|TypeRegistry|addEnum|static_cast|dynamic_cast|reinterpret_cast|const_cast|static\s|virtual\s|override|namespace\s|template\s*<|typedef\s|struct\s|enum\s|public:|private:|protected:|=>\s*{|\(\)\s*=>|async\s|await\s|try\s*{|catch\s*\(/;
+
+    // Secondary pattern: lines that look like code continuation
+    const codeContinuePattern = /^\s*[{}();,\]>\[\*\/]|::|->|<<|>>|&&|\|\||[a-zA-Z_]\w*\s*[(<]|^\s*\.\w+|^\s*\/\/|^\s*\/\*|^\s*\*\s|^\s*\*\/|^\s*[a-zA-Z_]\w*\s*=\s|[;{}]\s*$/;
 
     const parser = new DOMParser();
     const doc = parser.parseFromString(`<div>${html}</div>`, "text/html");
@@ -126,22 +129,25 @@ export default function FileViewerPage() {
     let i = 0;
     while (i < children.length) {
       const el = children[i];
+      const elText = el.textContent || "";
       if (
         el.tagName === "P" &&
         !el.closest("pre") &&
-        codePatterns.test(el.textContent || "")
+        codeStartPattern.test(elText)
       ) {
         // Collect consecutive code-like paragraphs
         const codeLines: string[] = [];
         let j = i;
         while (j < children.length) {
           const c = children[j];
+          if (c.tagName !== "P") break;
           const text = c.textContent || "";
-          // Continue if it looks like code or is a short line (continuation)
+          const trimmed = text.trim();
+          // Include if it matches primary or secondary pattern, or is a short continuation line
           if (
-            c.tagName === "P" &&
-            (codePatterns.test(text) ||
-              (codeLines.length > 0 && (text.trim().length < 80 || /^[\s{}();,\]>]/.test(text.trim()))))
+            codeStartPattern.test(text) ||
+            codeContinuePattern.test(trimmed) ||
+            (codeLines.length > 0 && trimmed.length > 0 && trimmed.length < 120)
           ) {
             codeLines.push(text);
             j++;
@@ -150,7 +156,7 @@ export default function FileViewerPage() {
           }
         }
 
-        if (codeLines.length >= 2) {
+        if (codeLines.length >= 1) {
           // Replace these paragraphs with a <pre><code> block
           const pre = doc.createElement("pre");
           pre.className = "word-code-block";
