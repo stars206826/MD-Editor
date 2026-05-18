@@ -62,14 +62,119 @@ export default function FileViewerPage() {
 
       // Dynamic import mammoth for client-side only
       const mammoth = await import("mammoth");
-      const result = await mammoth.convertToHtml({ arrayBuffer });
-      setWordHtml(result.value);
+
+      // Style map: map common Word code styles to <pre><code>
+      const styleMap = [
+        "p[style-name='Code'] => pre:separator('\\n')",
+        "p[style-name='Code Block'] => pre:separator('\\n')",
+        "p[style-name='HTML Code'] => pre:separator('\\n')",
+        "p[style-name='code'] => pre:separator('\\n')",
+        "p[style-name='Listing'] => pre:separator('\\n')",
+        "p[style-name='Source Code'] => pre:separator('\\n')",
+        "p[style-name='Plain Text'] => pre:separator('\\n')",
+        "r[style-name='Code Char'] => code",
+        "r[style-name='HTML Code Char'] => code",
+      ];
+
+      const result = await mammoth.convertToHtml(
+        { arrayBuffer },
+        { styleMap }
+      );
+
+      // Post-process: detect code-like blocks by monospace font or shading
+      let html = result.value;
+      html = postProcessWordHtml(html);
+
+      setWordHtml(html);
     } catch (err) {
       console.error("Failed to convert Word document:", err);
       setError("Word 文档预览失败，请尝试下载查看");
     } finally {
       setWordLoading(false);
     }
+  }
+
+  // Post-process mammoth HTML to improve code block rendering
+  function postProcessWordHtml(html: string): string {
+    // Wrap consecutive <pre> lines into single <pre><code> blocks
+    html = html.replace(
+      /(<pre>[^<]*<\/pre>\n?)+/g,
+      (match) => {
+        const lines = match
+          .replace(/<\/?pre>/g, "\n")
+          .split("\n")
+          .filter((l) => l.length > 0);
+        const code = lines
+          .map((l) => l.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"))
+          .join("\n");
+        // Lines already escaped by mammoth, just join them
+        return `<pre class="word-code-block"><code>${match.replace(/<\/?pre>/g, "\n").trim()}</code></pre>`;
+      }
+    );
+
+    // Detect paragraphs that look like code (contain multiple programming keywords/syntax)
+    // and are not already in a pre/code block
+    const codePatterns = /[{}();=&]{3,}|function\s|const\s|let\s|var\s|class\s|import\s|#include|#define|void\s|int\s|return\s|if\s*\(|for\s*\(|while\s*\(|FOREACH|TypeRegistry|addEnum/;
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(`<div>${html}</div>`, "text/html");
+    const container = doc.body.firstElementChild;
+    if (!container) return html;
+
+    // Find sequences of paragraphs that look like code
+    const children = Array.from(container.children);
+    let i = 0;
+    while (i < children.length) {
+      const el = children[i];
+      if (
+        el.tagName === "P" &&
+        !el.closest("pre") &&
+        codePatterns.test(el.textContent || "")
+      ) {
+        // Collect consecutive code-like paragraphs
+        const codeLines: string[] = [];
+        let j = i;
+        while (j < children.length) {
+          const c = children[j];
+          const text = c.textContent || "";
+          // Continue if it looks like code or is a short line (continuation)
+          if (
+            c.tagName === "P" &&
+            (codePatterns.test(text) ||
+              (codeLines.length > 0 && (text.trim().length < 80 || /^[\s{}();,\]>]/.test(text.trim()))))
+          ) {
+            codeLines.push(text);
+            j++;
+          } else {
+            break;
+          }
+        }
+
+        if (codeLines.length >= 2) {
+          // Replace these paragraphs with a <pre><code> block
+          const pre = doc.createElement("pre");
+          pre.className = "word-code-block";
+          const code = doc.createElement("code");
+          code.textContent = codeLines.join("\n");
+          pre.appendChild(code);
+
+          // Insert before first code paragraph
+          container.insertBefore(pre, children[i]);
+          // Remove original paragraphs
+          for (let k = i; k < j; k++) {
+            children[k].remove();
+          }
+
+          i = j;
+        } else {
+          i++;
+        }
+      } else {
+        i++;
+      }
+    }
+
+    return container.innerHTML;
   }
 
   if (loading) {
@@ -148,8 +253,42 @@ export default function FileViewerPage() {
 
         {isWord && wordHtml && (
           <div className="bg-white rounded-lg">
+            <style dangerouslySetInnerHTML={{ __html: `
+              .word-viewer pre,
+              .word-viewer .word-code-block {
+                background-color: #f5f5f4;
+                border: 1px solid #e7e5e4;
+                border-radius: 0.5rem;
+                padding: 1rem 1.25rem;
+                overflow-x: auto;
+                margin: 1rem 0;
+                font-family: "Cascadia Code", "Fira Code", "JetBrains Mono", "Consolas", "Monaco", monospace;
+                font-size: 0.875rem;
+                line-height: 1.6;
+                color: #292524;
+                white-space: pre;
+              }
+              .word-viewer pre code,
+              .word-viewer .word-code-block code {
+                background: none;
+                border: none;
+                padding: 0;
+                font-size: inherit;
+                color: inherit;
+                white-space: pre;
+              }
+              .word-viewer code {
+                background-color: #f5f5f4;
+                border: 1px solid #e7e5e4;
+                border-radius: 0.25rem;
+                padding: 0.15rem 0.4rem;
+                font-family: "Cascadia Code", "Fira Code", "Consolas", monospace;
+                font-size: 0.875em;
+                color: #c2410c;
+              }
+            `}} />
             <div
-              className="prose max-w-none p-8 prose-headings:text-gray-900 prose-p:text-gray-700 prose-strong:text-gray-900 prose-a:text-blue-600 prose-code:text-pink-600 prose-pre:bg-gray-100 prose-td:border prose-td:border-gray-300 prose-td:p-2 prose-th:border prose-th:border-gray-300 prose-th:p-2 prose-th:bg-gray-50 prose-img:max-w-full"
+              className="word-viewer prose max-w-none p-8 prose-headings:text-gray-900 prose-p:text-gray-700 prose-strong:text-gray-900 prose-a:text-blue-600 prose-td:border prose-td:border-gray-300 prose-td:p-2 prose-th:border prose-th:border-gray-300 prose-th:p-2 prose-th:bg-gray-50 prose-img:max-w-full"
               dangerouslySetInnerHTML={{ __html: wordHtml }}
             />
           </div>
