@@ -573,6 +573,63 @@ export const SimpleRichEditor = forwardRef<SimpleRichEditorHandle, SimpleRichEdi
     }
   }
 
+  function insertInlineCode() {
+    restoreSelection();
+    const selection = window.getSelection();
+    if (!selection || !editorRef.current) return;
+
+    const selectedText = selection.toString();
+    const code = document.createElement("code");
+    code.textContent = selectedText || "代码";
+
+    if (selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      range.deleteContents();
+      range.insertNode(code);
+      // Move cursor after the code element
+      range.setStartAfter(code);
+      range.setEndAfter(code);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+
+    handleInput();
+  }
+
+  function insertCodeBlock() {
+    restoreSelection();
+    const selection = window.getSelection();
+    if (!editorRef.current) return;
+
+    const selectedText = selection?.toString() || "";
+
+    const pre = document.createElement("pre");
+    const code = document.createElement("code");
+    code.textContent = selectedText || "// 在此输入代码";
+    pre.appendChild(code);
+
+    // Insert a paragraph after the code block so user can continue typing
+    const afterParagraph = document.createElement("p");
+    afterParagraph.innerHTML = "<br>";
+
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      range.deleteContents();
+      range.insertNode(afterParagraph);
+      range.insertNode(pre);
+      // Move cursor to the paragraph after code block
+      range.setStart(afterParagraph, 0);
+      range.setEnd(afterParagraph, 0);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    } else {
+      editorRef.current.appendChild(pre);
+      editorRef.current.appendChild(afterParagraph);
+    }
+
+    handleInput();
+  }
+
   function insertImage() {
     // 调用父组件的图片点击处理函数
     if (onImageClick) {
@@ -748,6 +805,37 @@ export const SimpleRichEditor = forwardRef<SimpleRichEditorHandle, SimpleRichEdi
           disabled={disabled}
         >
           1. 编号
+        </Button>
+        
+        <div className="mx-1 w-px bg-stone-200" />
+        
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            saveSelection();
+          }}
+          onClick={insertInlineCode}
+          disabled={disabled}
+          title="行内代码"
+        >
+          &lt;/&gt;
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            saveSelection();
+          }}
+          onClick={insertCodeBlock}
+          disabled={disabled}
+          title="代码块"
+        >
+          {"{ }"}
         </Button>
         
         <div className="mx-1 w-px bg-stone-200" />
