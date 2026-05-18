@@ -43,7 +43,8 @@ export function MarkdownToolbar({
     { format: "italic", label: "I", icon: "italic", title: "斜体 (Ctrl+I)" },
     { format: "heading", label: "H", icon: "", title: "标题" },
     { format: "link", label: "🔗", icon: "", title: "链接 (Ctrl+K)" },
-    { format: "code", label: "</>", icon: "", title: "代码" },
+    { format: "code", label: "</>", icon: "", title: "行内代码" },
+    { format: "codeblock", label: "{ }", icon: "", title: "代码块" },
     { format: "quote", label: "❝", icon: "", title: "引用" },
     { format: "list", label: "•", icon: "", title: "列表" },
     { format: "image", label: "🖼️", icon: "", title: "插入图片" },
@@ -129,6 +130,16 @@ export function applyMarkdownFormat(
       } else {
         formatted = "``";
         cursorOffset = 1; // Place cursor between `|`
+      }
+      break;
+
+    case "codeblock":
+      if (text) {
+        formatted = `\n\`\`\`\n${text}\n\`\`\`\n`;
+        cursorOffset = 5; // Place cursor after ```\n
+      } else {
+        formatted = `\n\`\`\`\n\n\`\`\`\n`;
+        cursorOffset = 5; // Place cursor on empty line between fences
       }
       break;
 

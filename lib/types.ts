@@ -132,6 +132,7 @@ export type MarkdownFormat =
   | 'heading' 
   | 'link' 
   | 'code' 
+  | 'codeblock'
   | 'quote' 
   | 'list' 
   | 'image';
